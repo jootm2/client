@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>JootM2</title>
+    <style>
+        #gameArea {
+            position: absolute;
+            x: 0;
+            y: 0;
+        }
+        #gameArea * {
+            position: relative;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="gameArea"></div>
+    <script type="module">
+        import * as JootM2 from "./JootM2.mjs"
+        import { Images } from "./image/Images.mjs"
+        import * as PIXI from "./pixi.mjs"
+        import { LoginScene } from "./scene/LoginScene.mjs"
+
+        const gameWidth = 1024
+        const gameHeight = 768
+        const gameArea = document.getElementById("gameArea")
+
+        const app = new PIXI.Application({ background: '#000', width: gameWidth, height: gameHeight })
+        gameArea.appendChild(app.view)
+
+        await JootM2.init("http://localhost:55842/resources.json")
+
+        //Images.load("prguse", 60)
+
+        //let prguse60_loaded = false
+
+        const loginScene = new LoginScene({dom_container: gameArea, pixi_container: app.stage, width: gameWidth, height: gameHeight})
+
+        app.ticker.add((delta) => {
+            loginScene.update()
+            /*const tex = PIXI.utils.BaseTextureCache['prguse/60']
+            if (!!tex && !prguse60_loaded) {
+                prguse60_loaded = true
+                const sprite = new PIXI.Sprite(new PIXI.Texture(tex))
+                sprite.x = (gameWidth - sprite.width) / 2
+                sprite.y = (gameHeight - sprite.height) / 2
+                app.stage.addChild(sprite)
+            }*/
+        })
+    </script>
+</body>
