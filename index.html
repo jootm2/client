@@ -4,50 +4,103 @@
     <meta charset="utf-8" />
     <title>JootM2</title>
     <style>
-        #gameArea {
-            position: absolute;
-            x: 0;
-            y: 0;
-        }
-        #gameArea * {
+        #game_area {
             position: relative;
         }
+        #game_canvas {
+            position: absolute;
+            left: 0px;
+            top: 0px;
+        }
+        #login_window {
+            position: relative;
+            left: 0px;
+            top: 0px;
+            visibility: hidden;
+        }
+        #login_id {
+            width: 140px;
+        }
+        #login_psw {
+            width: 140px;
+        }
+        #new_account_window {
+            position: relative;
+            left: 0px;
+            top: 0px;
+            visibility: hidden;
+        }
+        #new_account_help {
+            font-size: 14px;
+            width: 200px;
+            height: 260px;
+            resize: none;
+        }
     </style>
+    <link rel="stylesheet" href="common.css" />
 </head>
 
 <body>
-    <div id="gameArea"></div>
+    <div id="game_area">
+        <canvas id="game_canvas">Loading...</canvas>
+        <div id="login_window">
+            <input id="login_id" class="normal_input" maxlength="10"/>
+            <input id="login_psw" class="normal_input" type="password" maxlength="10"/>
+            <button id="login_close" class="normal_button">x</button>
+            <button id="new_account" class="normal_button">new</button>
+            <button id="chpsw" class="normal_button">chpsw</button>
+        </div>
+        <div id="new_account_window">
+            <button id="new_account_close" class="normal_button">x</button>
+            <button id="new_account_ok" class="normal_button">ok</button>
+            <button id="new_account_cancel" class="normal_button">cancel</button>
+            <input id="new_account_id" class="normal_input" maxlength="10" />
+            <input id="new_account_psw" class="normal_input" type="password" maxlength="10" />
+            <input id="new_account_psw2" class="normal_input" type="password" maxlength="10" />
+            <input id="new_account_yourname" class="normal_input" maxlength="20" />
+            <input id="new_account_birthday" class="normal_input" maxlength="10" />
+            <input id="new_account_quiz1" class="normal_input" maxlength="20" />
+            <input id="new_account_answer1" class="normal_input" maxlength="12" />
+            <input id="new_account_quiz2" class="normal_input" maxlength="20" />
+            <input id="new_account_answer2" class="normal_input" maxlength="12" />
+            <input id="new_account_phone" class="normal_input" maxlength="14" />
+            <input id="new_account_mobphone" class="normal_input" maxlength="13" />
+            <input id="new_account_email" class="normal_input" maxlength="40" />
+            <textarea id="new_account_help" class="normal_input" readonly></textarea>
+        </div>
+    </div>
     <script type="module">
         import * as JootM2 from "./JootM2.mjs"
         import { Images } from "./image/Images.mjs"
         import * as PIXI from "./pixi.mjs"
-        import { LoginScene } from "./scene/LoginScene.mjs"
+        import { SceneManager } from "./scene/SceneManager.mjs"
 
-        const gameWidth = 1024
-        const gameHeight = 768
-        const gameArea = document.getElementById("gameArea")
+        const game_width = 800
+        const game_height = 600
+        const game_area = document.getElementById("game_area")
+        const game_canvas = document.getElementById("game_canvas")
+        const login_window = document.getElementById("login_window")
 
-        const app = new PIXI.Application({ background: '#000', width: gameWidth, height: gameHeight })
-        gameArea.appendChild(app.view)
+        const app = new PIXI.Application({ background: '#000', width: game_width, height: game_height, view: game_canvas })
 
         await JootM2.init("http://localhost:55842/resources.json")
 
-        //Images.load("prguse", 60)
-
-        //let prguse60_loaded = false
-
-        const loginScene = new LoginScene({dom_container: gameArea, pixi_container: app.stage, width: gameWidth, height: gameHeight})
-
+        const scene_manager = new SceneManager({pixi_container: app.stage, width: game_width, height: game_height})
+        scene_manager.change_scene(0)
         app.ticker.add((delta) => {
-            loginScene.update()
-            /*const tex = PIXI.utils.BaseTextureCache['prguse/60']
-            if (!!tex && !prguse60_loaded) {
-                prguse60_loaded = true
-                const sprite = new PIXI.Sprite(new PIXI.Texture(tex))
-                sprite.x = (gameWidth - sprite.width) / 2
-                sprite.y = (gameHeight - sprite.height) / 2
-                app.stage.addChild(sprite)
-            }*/
+            scene_manager.update()
         })
     </script>
+    <script>
+      // 页面加载完成后，给所有input设置autocomplete=off
+      window.addEventListener('DOMContentLoaded', () => {
+        // 获取所有input元素
+        const allInputs = document.querySelectorAll('input')
+        allInputs.forEach(input => {
+          input.autocomplete = 'off'
+          input.autocorrect = "off"
+          input.autocapitalize = "off"
+        });
+    });
+  </script>
 </body>

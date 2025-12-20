@@ -1,0 +1,14 @@
+.normal_input {
+    position: absolute;
+    background: transparent;
+    border: none;
+    color: white;
+    outline: none;
+    box-shadow: none;
+    font-size: 12px;
+    width: 120px;
+}
+.normal_button {
+    position: absolute;
+    opacity: 0;
+}

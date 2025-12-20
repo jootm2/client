@@ -59,8 +59,8 @@ class WIL {
             let offset = this.offsetList[no];
             if (offset == 0) {
                 // 某种原因的空图片
+                this.loadedNos.add(no);
                 if (this.textureConsumer != null) {
-                    this.loadedNos.add(no);
                     this.textureConsumer(no, M2Texture.Empty);
                 }
                 continue;
@@ -73,8 +73,8 @@ class WIL {
                 // 可能是数据不足
                 if (unpack4Chunk) break;
                 // 数据出错
+                this.loadedNos.add(no);
                 if (this.textureConsumer != null) {
-                    this.loadedNos.add(no);
                     this.textureConsumer(no, M2Texture.Empty);
                 }
                 continue;
@@ -83,8 +83,8 @@ class WIL {
             const width = byteBuffer.getUint16(offset, true);
             const height = byteBuffer.getUint16(offset + 2, true);
             if (/*width == 1 && */height == 1) { // 1x1或4x1我们不要它
+                this.loadedNos.add(no);
                 if (this.textureConsumer != null) {
-                    this.loadedNos.add(no);
                     this.textureConsumer(no, M2Texture.Empty);
                 }
                 continue;
@@ -149,8 +149,8 @@ class WIL {
                     }
                 }
             }
+            this.loadedNos.add(no);
             if (this.textureConsumer != null) {
-                this.loadedNos.add(no);
                 this.textureConsumer(no, new M2Texture(false, width, height, offsetX, offsetY, sRGBA));
             }
         }
