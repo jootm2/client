@@ -46,6 +46,7 @@
         <div id="login_window">
             <input id="login_id" class="normal_input" maxlength="10"/>
             <input id="login_psw" class="normal_input" type="password" maxlength="10"/>
+            <button id="login_ok" class="normal_button">ok</button>
             <button id="login_close" class="normal_button">x</button>
             <button id="new_account" class="normal_button">new</button>
             <button id="chpsw" class="normal_button">chpsw</button>
@@ -81,12 +82,19 @@
         const game_canvas = document.getElementById("game_canvas")
         const login_window = document.getElementById("login_window")
 
-        const app = new PIXI.Application({ background: '#000', width: game_width, height: game_height, view: game_canvas })
-
         await JootM2.init("http://localhost:55842/resources.json")
 
-        const scene_manager = new SceneManager({pixi_container: app.stage, width: game_width, height: game_height})
+        const app = new PIXI.Application({ background: '#000', width: game_width, height: game_height, view: game_canvas })
+        const sprite_layer = new PIXI.Container // 绘制地图、人物、怪物、NPC、掉落物品、技能特效等
+        const ui_layer = new PIXI.Container // 绘制背包、属性、技能等（登录等场景也放入这个层，不另外设立）
+        const dlg_layer = new PIXI.Container // 绘制模态对话框（公告、确定取消、输入框）等
+        app.stage.addChild(sprite_layer)
+        app.stage.addChild(ui_layer)
+        app.stage.addChild(dlg_layer)
+
+        const scene_manager = new SceneManager({pixi_container: ui_layer, width: game_width, height: game_height})
         scene_manager.change_scene(0)
+
         app.ticker.add((delta) => {
             scene_manager.update()
         })
