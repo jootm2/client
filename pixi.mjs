@@ -1,6 +1,6 @@
 /*!
- * pixi.js - v7.3.1
- * Compiled Wed, 10 Dec 2025 05:56:58 UTC
+ * pixi.js - v7.4.3
+ * Compiled Mon, 22 Dec 2025 02:57:18 UTC
  *
  * pixi.js is licensed under the MIT License.
  * http://www.opensource.org/licenses/mit-license
@@ -1077,7 +1077,7 @@ const path = {
           joined = arg;
         else {
           const prevArg = (_a2 = segments[i2 - 1]) != null ? _a2 : "";
-          this.extname(prevArg) ? joined += `/../${arg}` : joined += `/${arg}`;
+          this.joinExtensions.includes(this.extname(prevArg).toLowerCase()) ? joined += `/../${arg}` : joined += `/${arg}`;
         }
     }
     return joined === void 0 ? "." : this.normalize(joined);
@@ -1203,7 +1203,8 @@ const path = {
     return startDot === -1 || end === -1 || preDotState === 0 || preDotState === 1 && startDot === end - 1 && startDot === startPart + 1 ? end !== -1 && (startPart === 0 && isAbsolute ? ret.base = ret.name = path2.slice(1, end) : ret.base = ret.name = path2.slice(startPart, end)) : (startPart === 0 && isAbsolute ? (ret.name = path2.slice(1, startDot), ret.base = path2.slice(1, end)) : (ret.name = path2.slice(startPart, startDot), ret.base = path2.slice(startPart, end)), ret.ext = path2.slice(startDot, end)), ret.dir = this.dirname(path2), protocol && (ret.dir = protocol + ret.dir), ret;
   },
   sep: "/",
-  delimiter: ":"
+  delimiter: ":",
+  joinExtensions: [".html"]
 };
 let promise;
 async function detectVideoAlphaMode() {
@@ -2022,20 +2023,20 @@ var index = {
   trimCanvas,
   uid,
   url
-}, __defProp$d = Object.defineProperty, __defProps$4 = Object.defineProperties, __getOwnPropDescs$4 = Object.getOwnPropertyDescriptors, __getOwnPropSymbols$e = Object.getOwnPropertySymbols, __hasOwnProp$e = Object.prototype.hasOwnProperty, __propIsEnum$e = Object.prototype.propertyIsEnumerable, __defNormalProp$d = (obj, key, value) => key in obj ? __defProp$d(obj, key, { enumerable: !0, configurable: !0, writable: !0, value }) : obj[key] = value, __spreadValues$d = (a2, b2) => {
+}, __defProp$d = Object.defineProperty, __defProps$5 = Object.defineProperties, __getOwnPropDescs$5 = Object.getOwnPropertyDescriptors, __getOwnPropSymbols$e = Object.getOwnPropertySymbols, __hasOwnProp$e = Object.prototype.hasOwnProperty, __propIsEnum$e = Object.prototype.propertyIsEnumerable, __defNormalProp$d = (obj, key, value) => key in obj ? __defProp$d(obj, key, { enumerable: !0, configurable: !0, writable: !0, value }) : obj[key] = value, __spreadValues$d = (a2, b2) => {
   for (var prop in b2 || (b2 = {}))
     __hasOwnProp$e.call(b2, prop) && __defNormalProp$d(a2, prop, b2[prop]);
   if (__getOwnPropSymbols$e)
     for (var prop of __getOwnPropSymbols$e(b2))
       __propIsEnum$e.call(b2, prop) && __defNormalProp$d(a2, prop, b2[prop]);
   return a2;
-}, __spreadProps$4 = (a2, b2) => __defProps$4(a2, __getOwnPropDescs$4(b2)), ExtensionType = /* @__PURE__ */ ((ExtensionType2) => (ExtensionType2.Renderer = "renderer", ExtensionType2.Application = "application", ExtensionType2.RendererSystem = "renderer-webgl-system", ExtensionType2.RendererPlugin = "renderer-webgl-plugin", ExtensionType2.CanvasRendererSystem = "renderer-canvas-system", ExtensionType2.CanvasRendererPlugin = "renderer-canvas-plugin", ExtensionType2.Asset = "asset", ExtensionType2.LoadParser = "load-parser", ExtensionType2.ResolveParser = "resolve-parser", ExtensionType2.CacheParser = "cache-parser", ExtensionType2.DetectionParser = "detection-parser", ExtensionType2))(ExtensionType || {});
+}, __spreadProps$5 = (a2, b2) => __defProps$5(a2, __getOwnPropDescs$5(b2)), ExtensionType = /* @__PURE__ */ ((ExtensionType2) => (ExtensionType2.Renderer = "renderer", ExtensionType2.Application = "application", ExtensionType2.RendererSystem = "renderer-webgl-system", ExtensionType2.RendererPlugin = "renderer-webgl-plugin", ExtensionType2.CanvasRendererSystem = "renderer-canvas-system", ExtensionType2.CanvasRendererPlugin = "renderer-canvas-plugin", ExtensionType2.Asset = "asset", ExtensionType2.LoadParser = "load-parser", ExtensionType2.ResolveParser = "resolve-parser", ExtensionType2.CacheParser = "cache-parser", ExtensionType2.DetectionParser = "detection-parser", ExtensionType2))(ExtensionType || {});
 const normalizeExtension = (ext) => {
   if (typeof ext == "function" || typeof ext == "object" && ext.extension) {
     if (!ext.extension)
       throw new Error("Extension class must have an extension object");
     const metadata = typeof ext.extension != "object" ? { type: ext.extension } : ext.extension;
-    ext = __spreadProps$4(__spreadValues$d({}, metadata), { ref: ext });
+    ext = __spreadProps$5(__spreadValues$d({}, metadata), { ref: ext });
   }
   if (typeof ext == "object")
     ext = __spreadValues$d({}, ext);
@@ -2073,8 +2074,9 @@ const normalizeExtension = (ext) => {
   add(...extensions2) {
     return extensions2.map(normalizeExtension).forEach((ext) => {
       ext.type.forEach((type) => {
+        var _a2, _b;
         const handlers = this._addHandlers, queue = this._queue;
-        handlers[type] ? handlers[type](ext) : (queue[type] = queue[type] || [], queue[type].push(ext));
+        handlers[type] ? (_b = handlers[type]) == null || _b.call(handlers, ext) : (queue[type] = queue[type] || [], (_a2 = queue[type]) == null || _a2.push(ext));
       });
     }), this;
   },
@@ -2086,12 +2088,13 @@ const normalizeExtension = (ext) => {
    * @returns {PIXI.extensions} For chaining.
    */
   handle(type, onAdd, onRemove) {
+    var _a2;
     const addHandlers = this._addHandlers, removeHandlers = this._removeHandlers;
     if (addHandlers[type] || removeHandlers[type])
       throw new Error(`Extension type ${type} already has a handler`);
     addHandlers[type] = onAdd, removeHandlers[type] = onRemove;
     const queue = this._queue;
-    return queue[type] && (queue[type].forEach((ext) => onAdd(ext)), delete queue[type]), this;
+    return queue[type] && ((_a2 = queue[type]) == null || _a2.forEach((ext) => onAdd(ext)), delete queue[type]), this;
   },
   /**
    * Handle a type, but using a map by `name` property.
@@ -2103,10 +2106,10 @@ const normalizeExtension = (ext) => {
     return this.handle(
       type,
       (extension) => {
-        map2[extension.name] = extension.ref;
+        extension.name && (map2[extension.name] = extension.ref);
       },
       (extension) => {
-        delete map2[extension.name];
+        extension.name && delete map2[extension.name];
       }
     );
   },
@@ -2325,7 +2328,7 @@ function autoDetectResource(source, options) {
 }
 class Runner {
   /**
-   * @param name - The function name that will be executed on the listeners added to this Runner.
+   * @param {string} name - The function name that will be executed on the listeners added to this Runner.
    */
   constructor(name) {
     this.items = [], this._name = name, this._aliasCount = 0;
@@ -2390,7 +2393,7 @@ class Runner {
   }
   /** Remove all references, don't use after this. */
   destroy() {
-    this.removeAll(), this.items = null, this._name = null;
+    this.removeAll(), this.items.length = 0, this._name = "";
   }
   /**
    * `true` if there are no this Runner contains no listeners
@@ -2401,7 +2404,7 @@ class Runner {
   }
   /**
    * The name of the runner.
-   * @readonly
+   * @type {string}
    */
   get name() {
     return this._name;
@@ -2591,7 +2594,7 @@ const defaultBufferOptions = {
   alphaMode: ALPHA_MODES.NPM
 }, _BaseTexture = class _BaseTexture2 extends EventEmitter {
   /**
-   * @param {PIXI.Resource|HTMLImageElement|HTMLVideoElement|ImageBitmap|ICanvas|string} [resource=null] -
+   * @param {PIXI.Resource|PIXI.ImageSource|string} [resource=null] -
    *        The current resource to use, for things that aren't Resource objects, will be converted
    *        into a Resource.
    * @param options - Collection of options, default options inherited from {@link PIXI.BaseTexture.defaultOptions}.
@@ -2769,7 +2772,7 @@ const defaultBufferOptions = {
    * source is an image url or an image element and not in the base texture
    * cache, it will be created and loaded.
    * @static
-   * @param {HTMLImageElement|HTMLVideoElement|ImageBitmap|PIXI.ICanvas|string|string[]} source - The
+   * @param {PIXI.ImageSource|string|string[]} source - The
    *        source to create base texture from.
    * @param options - See {@link PIXI.BaseTexture}'s constructor for options.
    * @param {string} [options.pixiIdPrefix=pixiid] - If a source has no id, this is the prefix of the generated id
@@ -4588,7 +4591,10 @@ function getMaxFragmentPrecision() {
   if (!maxFragmentPrecision) {
     maxFragmentPrecision = PRECISION.MEDIUM;
     const gl = getTestContext();
-    gl && gl.getShaderPrecisionFormat && (maxFragmentPrecision = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_FLOAT).precision ? PRECISION.HIGH : PRECISION.MEDIUM);
+    if (gl && gl.getShaderPrecisionFormat) {
+      const shaderFragment = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_FLOAT);
+      shaderFragment && (maxFragmentPrecision = shaderFragment.precision ? PRECISION.HIGH : PRECISION.MEDIUM);
+    }
   }
   return maxFragmentPrecision;
 }
@@ -5556,7 +5562,8 @@ class ContextSystem {
       etc1: gl.getExtension("WEBGL_compressed_texture_etc1"),
       pvrtc: gl.getExtension("WEBGL_compressed_texture_pvrtc") || gl.getExtension("WEBKIT_WEBGL_compressed_texture_pvrtc"),
       atc: gl.getExtension("WEBGL_compressed_texture_atc"),
-      astc: gl.getExtension("WEBGL_compressed_texture_astc")
+      astc: gl.getExtension("WEBGL_compressed_texture_astc"),
+      bptc: gl.getExtension("EXT_texture_compression_bptc")
     };
     this.webGLVersion === 1 ? Object.assign(this.extensions, common, {
       drawBuffers: gl.getExtension("WEBGL_draw_buffers"),
@@ -5793,10 +5800,10 @@ class BaseRenderTexture extends BaseTexture {
 }
 class BaseImageResource extends Resource {
   /**
-   * @param {HTMLImageElement|HTMLVideoElement|ImageBitmap|PIXI.ICanvas} source
+   * @param {PIXI.ImageSourcee} source
    */
   constructor(source) {
-    const sourceAny = source, width = sourceAny.naturalWidth || sourceAny.videoWidth || sourceAny.width, height = sourceAny.naturalHeight || sourceAny.videoHeight || sourceAny.height;
+    const sourceAny = source, width = sourceAny.naturalWidth || sourceAny.videoWidth || sourceAny.displayWidth || sourceAny.width, height = sourceAny.naturalHeight || sourceAny.videoHeight || sourceAny.displayHeight || sourceAny.height;
     super(width, height), this.source = source, this.noSubImage = !1;
   }
   /**
@@ -5813,7 +5820,7 @@ class BaseImageResource extends Resource {
    * @param renderer - Upload to the renderer
    * @param baseTexture - Reference to parent texture
    * @param glTexture
-   * @param {HTMLImageElement|HTMLVideoElement|ImageBitmap|PIXI.ICanvas} [source] - (optional)
+   * @param {PIXI.ImageSourcee} [source] - (optional)
    * @returns - true is success
    */
   upload(renderer, baseTexture, glTexture, source) {
@@ -8273,7 +8280,7 @@ class StartupSystem {
    */
   run(options) {
     const { renderer } = this;
-    renderer.runners.init.emit(renderer.options), options.hello && console.log(`PixiJS 7.3.1 - ${renderer.rendererLogId} - https://pixijs.com`), renderer.resize(renderer.screen.width, renderer.screen.height);
+    renderer.runners.init.emit(renderer.options), options.hello && console.log(`PixiJS 7.4.3 - ${renderer.rendererLogId} - https://pixijs.com`), renderer.resize(renderer.screen.width, renderer.screen.height);
   }
   destroy() {
   }
@@ -10574,6 +10581,23 @@ _SVGResource.SVG_XML = /^(<\?xml[^?]+\?>)?\s*(<!--[^(-->)]*-->)?\s*\<svg/m, /**
 */
 _SVGResource.SVG_SIZE = /<svg[^>]*(?:\s(width|height)=('|")(\d*(?:\.\d+)?)(?:px)?('|"))[^>]*(?:\s(width|height)=('|")(\d*(?:\.\d+)?)(?:px)?('|"))[^>]*>/i;
 let SVGResource = _SVGResource;
+class VideoFrameResource extends BaseImageResource {
+  /**
+   * @param source - Image element to use
+   */
+  // eslint-disable-next-line @typescript-eslint/no-useless-constructor
+  constructor(source) {
+    super(source);
+  }
+  /**
+   * Used to auto-detect the type of resource.
+   * @param {*} source - The source object
+   * @returns {boolean} `true` if source is an VideoFrame
+   */
+  static test(source) {
+    return !!globalThis.VideoFrame && source instanceof globalThis.VideoFrame;
+  }
+}
 const _VideoResource = class _VideoResource2 extends BaseImageResource {
   /**
    * @param {HTMLVideoElement|object|string|Array<string|object>} source - Video element to use.
@@ -10581,7 +10605,8 @@ const _VideoResource = class _VideoResource2 extends BaseImageResource {
    * @param {boolean} [options.autoLoad=true] - Start loading the video immediately
    * @param {boolean} [options.autoPlay=true] - Start playing video immediately
    * @param {number} [options.updateFPS=0] - How many times a second to update the texture from the video.
-   * Leave at 0 to update at every render.
+   * If 0, `requestVideoFrameCallback` is used to update the texture.
+   * If `requestVideoFrameCallback` is not available, the texture is updated every render.
    * @param {boolean} [options.crossorigin=true] - Load image using cross origin
    * @param {boolean} [options.loop=false] - Loops the video
    * @param {boolean} [options.muted=false] - Mutes the video audio, useful for autoplay
@@ -10653,7 +10678,7 @@ const _VideoResource = class _VideoResource2 extends BaseImageResource {
    */
   _isSourcePlaying() {
     const source = this.source;
-    return !source.paused && !source.ended && this._isSourceReady();
+    return !source.paused && !source.ended;
   }
   /**
    * Returns true if the underlying source is ready for playing.
@@ -10695,7 +10720,8 @@ const _VideoResource = class _VideoResource2 extends BaseImageResource {
     value !== this._autoUpdate && (this._autoUpdate = value, this._configureAutoUpdate());
   }
   /**
-   * How many times a second to update the texture from the video. Leave at 0 to update at every render.
+   * How many times a second to update the texture from the video. If 0, `requestVideoFrameCallback` is used to
+   * update the texture. If `requestVideoFrameCallback` is not available, the texture is updated every render.
    * A lower fps can help performance, as updating the texture at 60fps on a 30ps video may not be efficient.
    */
   get updateFPS() {
@@ -10734,6 +10760,7 @@ INSTALLED.push(
   ImageResource,
   CanvasResource,
   VideoResource,
+  VideoFrameResource,
   SVGResource,
   BufferResource,
   CubeResource,
@@ -10756,7 +10783,7 @@ class TransformFeedback {
     this.disposeRunner.emit(this, !1);
   }
 }
-const VERSION = "7.3.1";
+const VERSION = "7.4.3";
 class Bounds {
   constructor() {
     this.minX = 1 / 0, this.minY = 1 / 0, this.maxX = -1 / 0, this.maxY = -1 / 0, this.rect = null, this.updateID = -1;
@@ -11237,7 +11264,7 @@ class DisplayObject extends EventEmitter {
     return this._zIndex;
   }
   set zIndex(value) {
-    this._zIndex = value, this.parent && (this.parent.sortDirty = !0);
+    this._zIndex !== value && (this._zIndex = value, this.parent && (this.parent.sortDirty = !0));
   }
   /**
    * Indicates if the object is globally visible.
@@ -13412,7 +13439,7 @@ class EventsTickerClass {
     }));
   }
   /**
-   * Updates the state of interactive objects if at least {@link interactionFrequency}
+   * Updates the state of interactive objects if at least {@link PIXI.EventsTicker#interactionFrequency}
    * milliseconds have passed since the last invocation.
    *
    * Invoked by a throttled ticker update from {@link PIXI.Ticker.system}.
@@ -13775,7 +13802,7 @@ class EventBoundary {
       }
     }
     const isInteractiveMode = this._isInteractive(eventMode), isInteractiveTarget = currentTarget.isInteractive();
-    return isInteractiveTarget && isInteractiveTarget && this._allInteractiveElements.push(currentTarget), ignore || this._hitElements.length > 0 ? null : shouldReturn ? this._hitElements : isInteractiveMode && !pruneFn(currentTarget, location) && testFn(currentTarget, location) ? isInteractiveTarget ? [currentTarget] : [] : null;
+    return isInteractiveMode && isInteractiveTarget && this._allInteractiveElements.push(currentTarget), ignore || this._hitElements.length > 0 ? null : shouldReturn ? this._hitElements : isInteractiveMode && !pruneFn(currentTarget, location) && testFn(currentTarget, location) ? isInteractiveTarget ? [currentTarget] : [] : null;
   }
   /**
    * Recursive implementation for {@link PIXI.EventBoundary.hitTest hitTest}.
@@ -14985,8 +15012,12 @@ const FederatedDisplayObject = {
    * });
    */
   addEventListener(type, listener, options) {
-    const capture = typeof options == "boolean" && options || typeof options == "object" && options.capture, context2 = typeof listener == "function" ? void 0 : listener;
-    type = capture ? `${type}capture` : type, listener = typeof listener == "function" ? listener : listener.handleEvent, this.on(type, listener, context2);
+    const capture = typeof options == "boolean" && options || typeof options == "object" && options.capture, signal = typeof options == "object" ? options.signal : void 0, once = typeof options == "object" ? options.once === !0 : !1, context2 = typeof listener == "function" ? void 0 : listener;
+    type = capture ? `${type}capture` : type;
+    const listenerFn = typeof listener == "function" ? listener : listener.handleEvent, emitter = this;
+    signal && signal.addEventListener("abort", () => {
+      emitter.off(type, listenerFn, context2);
+    }), once ? emitter.once(type, listenerFn, context2) : emitter.on(type, listenerFn, context2);
   },
   /**
    * Unlike `off` or `removeListener` which are methods from EventEmitter, `removeEventListener`
@@ -15536,7 +15567,8 @@ class CacheClass {
     if (keys.forEach((key2) => {
       this._cacheMap.set(key2, cachedAssets);
     }), cacheKeys.forEach((key2) => {
-      this._cache.has(key2) && this._cache.get(key2) !== value && console.warn("[Cache] already has key:", key2), this._cache.set(key2, cacheableAssets[key2]);
+      const val = cacheableAssets ? cacheableAssets[key2] : value;
+      this._cache.has(key2) && this._cache.get(key2) !== val && console.warn("[Cache] already has key:", key2), this._cache.set(key2, cacheableAssets[key2]);
     }), value instanceof Texture) {
       const texture = value;
       keys.forEach((key2) => {
@@ -15568,14 +15600,14 @@ class CacheClass {
   }
 }
 const Cache = new CacheClass();
-var __defProp$9 = Object.defineProperty, __defProps$3 = Object.defineProperties, __getOwnPropDescs$3 = Object.getOwnPropertyDescriptors, __getOwnPropSymbols$9 = Object.getOwnPropertySymbols, __hasOwnProp$9 = Object.prototype.hasOwnProperty, __propIsEnum$9 = Object.prototype.propertyIsEnumerable, __defNormalProp$9 = (obj, key, value) => key in obj ? __defProp$9(obj, key, { enumerable: !0, configurable: !0, writable: !0, value }) : obj[key] = value, __spreadValues$9 = (a2, b2) => {
+var __defProp$9 = Object.defineProperty, __defProps$4 = Object.defineProperties, __getOwnPropDescs$4 = Object.getOwnPropertyDescriptors, __getOwnPropSymbols$9 = Object.getOwnPropertySymbols, __hasOwnProp$9 = Object.prototype.hasOwnProperty, __propIsEnum$9 = Object.prototype.propertyIsEnumerable, __defNormalProp$9 = (obj, key, value) => key in obj ? __defProp$9(obj, key, { enumerable: !0, configurable: !0, writable: !0, value }) : obj[key] = value, __spreadValues$9 = (a2, b2) => {
   for (var prop in b2 || (b2 = {}))
     __hasOwnProp$9.call(b2, prop) && __defNormalProp$9(a2, prop, b2[prop]);
   if (__getOwnPropSymbols$9)
     for (var prop of __getOwnPropSymbols$9(b2))
       __propIsEnum$9.call(b2, prop) && __defNormalProp$9(a2, prop, b2[prop]);
   return a2;
-}, __spreadProps$3 = (a2, b2) => __defProps$3(a2, __getOwnPropDescs$3(b2));
+}, __spreadProps$4 = (a2, b2) => __defProps$4(a2, __getOwnPropDescs$4(b2));
 class Loader {
   constructor() {
     this._parsers = [], this._parsersValidated = !1, this.parsers = new Proxy(this._parsers, {
@@ -15665,7 +15697,7 @@ ${e2}`);
   }
   /** validates our parsers, right now it only checks for name conflicts but we can add more here as required! */
   _validateParsers() {
-    this._parsersValidated = !0, this._parserHash = this._parsers.filter((parser) => parser.name).reduce((hash, parser) => (hash[parser.name] && console.warn(`[Assets] loadParser name conflict "${parser.name}"`), __spreadProps$3(__spreadValues$9({}, hash), { [parser.name]: parser })), {});
+    this._parsersValidated = !0, this._parserHash = this._parsers.filter((parser) => parser.name).reduce((hash, parser) => (hash[parser.name] && console.warn(`[Assets] loadParser name conflict "${parser.name}"`), __spreadProps$4(__spreadValues$9({}, hash), { [parser.name]: parser })), {});
   }
 }
 var LoaderParserPriority = /* @__PURE__ */ ((LoaderParserPriority2) => (LoaderParserPriority2[LoaderParserPriority2.Low = 0] = "Low", LoaderParserPriority2[LoaderParserPriority2.Normal = 1] = "Normal", LoaderParserPriority2[LoaderParserPriority2.High = 2] = "High", LoaderParserPriority2))(LoaderParserPriority || {});
@@ -15697,14 +15729,14 @@ const validTXTExtension = ".txt", validTXTMIME = "text/plain", loadTxt = {
   }
 };
 extensions$1.add(loadTxt);
-var __defProp$8 = Object.defineProperty, __defProps$2 = Object.defineProperties, __getOwnPropDescs$2 = Object.getOwnPropertyDescriptors, __getOwnPropSymbols$8 = Object.getOwnPropertySymbols, __hasOwnProp$8 = Object.prototype.hasOwnProperty, __propIsEnum$8 = Object.prototype.propertyIsEnumerable, __defNormalProp$8 = (obj, key, value) => key in obj ? __defProp$8(obj, key, { enumerable: !0, configurable: !0, writable: !0, value }) : obj[key] = value, __spreadValues$8 = (a2, b2) => {
+var __defProp$8 = Object.defineProperty, __defProps$3 = Object.defineProperties, __getOwnPropDescs$3 = Object.getOwnPropertyDescriptors, __getOwnPropSymbols$8 = Object.getOwnPropertySymbols, __hasOwnProp$8 = Object.prototype.hasOwnProperty, __propIsEnum$8 = Object.prototype.propertyIsEnumerable, __defNormalProp$8 = (obj, key, value) => key in obj ? __defProp$8(obj, key, { enumerable: !0, configurable: !0, writable: !0, value }) : obj[key] = value, __spreadValues$8 = (a2, b2) => {
   for (var prop in b2 || (b2 = {}))
     __hasOwnProp$8.call(b2, prop) && __defNormalProp$8(a2, prop, b2[prop]);
   if (__getOwnPropSymbols$8)
     for (var prop of __getOwnPropSymbols$8(b2))
       __propIsEnum$8.call(b2, prop) && __defNormalProp$8(a2, prop, b2[prop]);
   return a2;
-}, __spreadProps$2 = (a2, b2) => __defProps$2(a2, __getOwnPropDescs$2(b2));
+}, __spreadProps$3 = (a2, b2) => __defProps$3(a2, __getOwnPropDescs$3(b2));
 const validWeights = [
   "normal",
   "bold",
@@ -15734,6 +15766,10 @@ function getFontFamilyName(url2) {
   let fontFamilyName = nameTokens.join(" ");
   return valid || (fontFamilyName = `"${fontFamilyName.replace(/[\\"]/g, "\\$&")}"`), fontFamilyName;
 }
+const validURICharactersRegex = /^[0-9A-Za-z%:/?#\[\]@!\$&'()\*\+,;=\-._~]*$/;
+function encodeURIWhenNeeded(uri) {
+  return validURICharactersRegex.test(uri) ? uri : encodeURI(uri);
+}
 const loadWebFont = {
   extension: {
     type: ExtensionType.LoadParser,
@@ -15749,7 +15785,7 @@ const loadWebFont = {
     if (fonts) {
       const fontFaces = [], name = (_b = (_a2 = options.data) == null ? void 0 : _a2.family) != null ? _b : getFontFamilyName(url2), weights = (_e = (_d = (_c = options.data) == null ? void 0 : _c.weights) == null ? void 0 : _d.filter((weight) => validWeights.includes(weight))) != null ? _e : ["normal"], data = (_f = options.data) != null ? _f : {};
       for (let i2 = 0; i2 < weights.length; i2++) {
-        const weight = weights[i2], font = new FontFace(name, `url(${encodeURI(url2)})`, __spreadProps$2(__spreadValues$8({}, data), {
+        const weight = weights[i2], font = new FontFace(name, `url(${encodeURIWhenNeeded(url2)})`, __spreadProps$3(__spreadValues$8({}, data), {
           weight
         }));
         await font.load(), fonts.add(font), fontFaces.push(font);
@@ -15763,82 +15799,78 @@ const loadWebFont = {
   }
 };
 extensions$1.add(loadWebFont);
-let UUID = 0, MAX_WORKERS;
-const WHITE_PNG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=", checkImageBitmapCode = {
-  id: "checkImageBitmap",
-  code: `
-    async function checkImageBitmap()
-    {
-        try
-        {
-            if (typeof createImageBitmap !== 'function') return false;
-
-            const response = await fetch('${WHITE_PNG}');
-            const imageBlob =  await response.blob();
-            const imageBitmap = await createImageBitmap(imageBlob);
-
-            return imageBitmap.width === 1 && imageBitmap.height === 1;
-        }
-        catch (e)
-        {
-            return false;
-        }
+const WORKER_CODE$1 = `(function() {
+  "use strict";
+  const WHITE_PNG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=";
+  async function checkImageBitmap() {
+    try {
+      if (typeof createImageBitmap != "function")
+        return !1;
+      const imageBlob = await (await fetch(WHITE_PNG)).blob(), imageBitmap = await createImageBitmap(imageBlob);
+      return imageBitmap.width === 1 && imageBitmap.height === 1;
+    } catch (e) {
+      return !1;
     }
-    checkImageBitmap().then((result) => { self.postMessage(result); });
-    `
-}, workerCode = {
-  id: "loadImageBitmap",
-  code: `
-    async function loadImageBitmap(url)
-    {
-        const response = await fetch(url);
-
-        if (!response.ok)
-        {
-            throw new Error(\`[WorkerManager.loadImageBitmap] Failed to fetch \${url}: \`
-                + \`\${response.status} \${response.statusText}\`);
-        }
-
-        const imageBlob =  await response.blob();
-        const imageBitmap = await createImageBitmap(imageBlob);
-
-        return imageBitmap;
-    }
-    self.onmessage = async (event) =>
-    {
-        try
-        {
-            const imageBitmap = await loadImageBitmap(event.data.data[0]);
-
-            self.postMessage({
-                data: imageBitmap,
-                uuid: event.data.uuid,
-                id: event.data.id,
-            }, [imageBitmap]);
-        }
-        catch(e)
-        {
-            self.postMessage({
-                error: e,
-                uuid: event.data.uuid,
-                id: event.data.id,
-            });
-        }
-    };`
+  }
+  checkImageBitmap().then((result) => {
+    self.postMessage(result);
+  });
+})();
+`;
+let WORKER_URL$1 = null, WorkerInstance$1 = class {
+  constructor() {
+    WORKER_URL$1 || (WORKER_URL$1 = URL.createObjectURL(new Blob([WORKER_CODE$1], { type: "application/javascript" }))), this.worker = new Worker(WORKER_URL$1);
+  }
 };
-let workerURL;
+WorkerInstance$1.revokeObjectURL = function() {
+  WORKER_URL$1 && (URL.revokeObjectURL(WORKER_URL$1), WORKER_URL$1 = null);
+};
+const WORKER_CODE = `(function() {
+  "use strict";
+  async function loadImageBitmap(url) {
+    const response = await fetch(url);
+    if (!response.ok)
+      throw new Error(\`[WorkerManager.loadImageBitmap] Failed to fetch \${url}: \${response.status} \${response.statusText}\`);
+    const imageBlob = await response.blob();
+    return await createImageBitmap(imageBlob);
+  }
+  self.onmessage = async (event) => {
+    try {
+      const imageBitmap = await loadImageBitmap(event.data.data[0]);
+      self.postMessage({
+        data: imageBitmap,
+        uuid: event.data.uuid,
+        id: event.data.id
+      }, [imageBitmap]);
+    } catch (e) {
+      self.postMessage({
+        error: e,
+        uuid: event.data.uuid,
+        id: event.data.id
+      });
+    }
+  };
+})();
+`;
+let WORKER_URL = null;
+class WorkerInstance2 {
+  constructor() {
+    WORKER_URL || (WORKER_URL = URL.createObjectURL(new Blob([WORKER_CODE], { type: "application/javascript" }))), this.worker = new Worker(WORKER_URL);
+  }
+}
+WorkerInstance2.revokeObjectURL = function() {
+  WORKER_URL && (URL.revokeObjectURL(WORKER_URL), WORKER_URL = null);
+};
+let UUID = 0, MAX_WORKERS;
 class WorkerManagerClass {
   constructor() {
     this._initialized = !1, this._createdWorkers = 0, this.workerPool = [], this.queue = [], this.resolveHash = {};
   }
   isImageBitmapSupported() {
     return this._isImageBitmapSupported !== void 0 ? this._isImageBitmapSupported : (this._isImageBitmapSupported = new Promise((resolve2) => {
-      const workerURL2 = URL.createObjectURL(new Blob(
-        [checkImageBitmapCode.code],
-        { type: "application/javascript" }
-      )), worker = new Worker(workerURL2);
+      const { worker } = new WorkerInstance$1();
       worker.addEventListener("message", (event) => {
-        worker.terminate(), URL.revokeObjectURL(workerURL2), resolve2(event.data);
+        worker.terminate(), WorkerInstance$1.revokeObjectURL(), resolve2(event.data);
       });
     }), this._isImageBitmapSupported);
   }
@@ -15851,7 +15883,7 @@ class WorkerManagerClass {
   getWorker() {
     MAX_WORKERS === void 0 && (MAX_WORKERS = navigator.hardwareConcurrency || 4);
     let worker = this.workerPool.pop();
-    return !worker && this._createdWorkers < MAX_WORKERS && (workerURL || (workerURL = URL.createObjectURL(new Blob([workerCode.code], { type: "application/javascript" }))), this._createdWorkers++, worker = new Worker(workerURL), worker.addEventListener("message", (event) => {
+    return !worker && this._createdWorkers < MAX_WORKERS && (this._createdWorkers++, worker = new WorkerInstance2().worker, worker.addEventListener("message", (event) => {
       this.complete(event.data), this.returnWorker(event.target), this.next();
     })), worker;
   }
@@ -15982,14 +16014,14 @@ const validSVGExtension = ".svg", validSVGMIME = "image/svg+xml", loadSVG = {
   unload: loadTextures.unload
 };
 extensions$1.add(loadSVG);
-var __defProp$5 = Object.defineProperty, __getOwnPropSymbols$5 = Object.getOwnPropertySymbols, __hasOwnProp$5 = Object.prototype.hasOwnProperty, __propIsEnum$5 = Object.prototype.propertyIsEnumerable, __defNormalProp$5 = (obj, key, value) => key in obj ? __defProp$5(obj, key, { enumerable: !0, configurable: !0, writable: !0, value }) : obj[key] = value, __spreadValues$5 = (a2, b2) => {
+var __defProp$5 = Object.defineProperty, __defProps$2 = Object.defineProperties, __getOwnPropDescs$2 = Object.getOwnPropertyDescriptors, __getOwnPropSymbols$5 = Object.getOwnPropertySymbols, __hasOwnProp$5 = Object.prototype.hasOwnProperty, __propIsEnum$5 = Object.prototype.propertyIsEnumerable, __defNormalProp$5 = (obj, key, value) => key in obj ? __defProp$5(obj, key, { enumerable: !0, configurable: !0, writable: !0, value }) : obj[key] = value, __spreadValues$5 = (a2, b2) => {
   for (var prop in b2 || (b2 = {}))
     __hasOwnProp$5.call(b2, prop) && __defNormalProp$5(a2, prop, b2[prop]);
   if (__getOwnPropSymbols$5)
     for (var prop of __getOwnPropSymbols$5(b2))
       __propIsEnum$5.call(b2, prop) && __defNormalProp$5(a2, prop, b2[prop]);
   return a2;
-};
+}, __spreadProps$2 = (a2, b2) => __defProps$2(a2, __getOwnPropDescs$2(b2));
 const validVideoExtensions = [".mp4", ".m4v", ".webm", ".ogv"], validVideoMIMEs = [
   "video/mp4",
   "video/webm",
@@ -16001,7 +16033,11 @@ const validVideoExtensions = [".mp4", ".m4v", ".webm", ".ogv"], validVideoMIMEs 
     priority: LoaderParserPriority.High
   },
   config: {
-    defaultAutoPlay: !0
+    defaultAutoPlay: !0,
+    defaultUpdateFPS: 0,
+    defaultLoop: !1,
+    defaultMuted: !1,
+    defaultPlaysinline: !0
   },
   test(url2) {
     return checkDataUrl(url2, validVideoMIMEs) || checkExtension(url2, validVideoExtensions);
@@ -16011,9 +16047,15 @@ const validVideoExtensions = [".mp4", ".m4v", ".webm", ".ogv"], validVideoMIMEs 
     let texture;
     const blob = await (await settings.ADAPTER.fetch(url2)).blob(), blobURL = URL.createObjectURL(blob);
     try {
-      const options = __spreadValues$5({
-        autoPlay: this.config.defaultAutoPlay
-      }, (_a2 = loadAsset == null ? void 0 : loadAsset.data) == null ? void 0 : _a2.resourceOptions), src = new VideoResource(blobURL, options);
+      const options = __spreadProps$2(__spreadValues$5({
+        autoPlay: this.config.defaultAutoPlay,
+        updateFPS: this.config.defaultUpdateFPS,
+        loop: this.config.defaultLoop,
+        muted: this.config.defaultMuted,
+        playsinline: this.config.defaultPlaysinline
+      }, (_a2 = loadAsset == null ? void 0 : loadAsset.data) == null ? void 0 : _a2.resourceOptions), {
+        autoLoad: !0
+      }), src = new VideoResource(blobURL, options);
       await src.load();
       const base = new BaseTexture(src, __spreadValues$5({
         alphaMode: await detectVideoAlphaMode(),
@@ -16248,38 +16290,6 @@ class Resolver {
       assetNames.push(...aliases);
     }), this._bundles[bundleId] = assetNames;
   }
-  /**
-   * Tells the resolver what keys are associated with witch asset.
-   * The most important thing the resolver does
-   * @example
-   * // Single key, single asset:
-   * resolver.add({alias: 'foo', src: 'bar.png');
-   * resolver.resolveUrl('foo') // => 'bar.png'
-   *
-   * // Multiple keys, single asset:
-   * resolver.add({alias: ['foo', 'boo'], src: 'bar.png'});
-   * resolver.resolveUrl('foo') // => 'bar.png'
-   * resolver.resolveUrl('boo') // => 'bar.png'
-   *
-   * // Multiple keys, multiple assets:
-   * resolver.add({alias: ['foo', 'boo'], src: ['bar.png', 'bar.webp']});
-   * resolver.resolveUrl('foo') // => 'bar.png'
-   *
-   * // Add custom data attached to the resolver
-   * Resolver.add({
-   *     alias: 'bunnyBooBooSmooth',
-   *     src: 'bunny{png,webp}',
-   *     data: { scaleMode:SCALE_MODES.NEAREST }, // Base texture options
-   * });
-   *
-   * resolver.resolve('bunnyBooBooSmooth') // => { src: 'bunny.png', data: { scaleMode: SCALE_MODES.NEAREST } }
-   * @param aliases - the key or keys that you will reference when loading this asset
-   * @param srcs - the asset or assets that will be chosen from when loading via the specified key
-   * @param data - asset-specific data that will be passed to the loaders
-   * - Useful if you want to initiate loaded objects with specific data
-   * @param format - the format of the asset
-   * @param loadParser - the name of the load parser to use
-   */
   add(aliases, srcs, data, format2, loadParser) {
     const assets = [];
     typeof aliases == "string" || Array.isArray(aliases) && typeof aliases[0] == "string" ? (deprecation("7.2.0", `Assets.add now uses an object instead of individual parameters.
@@ -16334,12 +16344,12 @@ Please use Assets.add({ alias, src, data, format, loadParser }) instead.`), asse
    *             name: 'load-screen',
    *             assets: [
    *                 {
-   *                     name: 'background',
-   *                     srcs: 'sunset.png',
+   *                     alias: 'background',
+   *                     src: 'sunset.png',
    *                 },
    *                 {
-   *                     name: 'bar',
-   *                     srcs: 'load-bar.{png,webp}',
+   *                     alias: 'bar',
+   *                     src: 'load-bar.{png,webp}',
    *                 },
    *             ],
    *         },
@@ -16347,12 +16357,12 @@ Please use Assets.add({ alias, src, data, format, loadParser }) instead.`), asse
    *             name: 'game-screen',
    *             assets: [
    *                 {
-   *                     name: 'character',
-   *                     srcs: 'robot.png',
+   *                     alias: 'character',
+   *                     src: 'robot.png',
    *                 },
    *                 {
-   *                     name: 'enemy',
-   *                     srcs: 'bad-guy.png',
+   *                     alias: 'enemy',
+   *                     src: 'bad-guy.png',
    *                 },
    *             ],
    *         },
@@ -16457,9 +16467,9 @@ Please use Assets.add({ alias, src, data, format, loadParser }) instead.`), asse
     return `${url2}${paramConnector}${this._defaultSearchParams}`;
   }
   buildResolvedAsset(formattedAsset, data) {
-    var _a2;
+    var _a2, _b;
     const { aliases, data: assetData, loadParser, format: format2 } = data;
-    return (this._basePath || this._rootPath) && (formattedAsset.src = path.toAbsolute(formattedAsset.src, this._basePath, this._rootPath)), formattedAsset.alias = (_a2 = aliases != null ? aliases : formattedAsset.alias) != null ? _a2 : [formattedAsset.src], formattedAsset.src = this._appendDefaultSearchParams(formattedAsset.src), formattedAsset.data = __spreadValues$4(__spreadValues$4({}, assetData || {}), formattedAsset.data), formattedAsset.loadParser = loadParser != null ? loadParser : formattedAsset.loadParser, formattedAsset.format = format2 != null ? format2 : formattedAsset.src.split(".").pop(), formattedAsset.srcs = formattedAsset.src, formattedAsset.name = formattedAsset.alias, formattedAsset;
+    return (this._basePath || this._rootPath) && (formattedAsset.src = path.toAbsolute(formattedAsset.src, this._basePath, this._rootPath)), formattedAsset.alias = (_a2 = aliases != null ? aliases : formattedAsset.alias) != null ? _a2 : [formattedAsset.src], formattedAsset.src = this._appendDefaultSearchParams(formattedAsset.src), formattedAsset.data = __spreadValues$4(__spreadValues$4({}, assetData || {}), formattedAsset.data), formattedAsset.loadParser = loadParser != null ? loadParser : formattedAsset.loadParser, formattedAsset.format = (_b = format2 != null ? format2 : formattedAsset.format) != null ? _b : path.extname(formattedAsset.src).slice(1), formattedAsset.srcs = formattedAsset.src, formattedAsset.name = formattedAsset.alias, formattedAsset;
   }
 }
 class AssetsClass {
@@ -16476,7 +16486,7 @@ class AssetsClass {
   async init(options = {}) {
     var _a2, _b, _c;
     if (this._initialized) {
-      console.warn("[Assets]AssetManager already initialized, did you load before calling this Asset.init()?");
+      console.warn("[Assets]AssetManager already initialized, did you load before calling this Assets.init()?");
       return;
     }
     if (this._initialized = !0, options.defaultSearchParams && this.resolver.setDefaultSearchParams(options.defaultSearchParams), options.basePath && (this.resolver.basePath = options.basePath), options.bundleIdentifier && this.resolver.setBundleIdentifier(options.bundleIdentifier), options.manifest) {
@@ -16495,51 +16505,6 @@ class AssetsClass {
       }
     }), options.preferences && this.setPreferences(options.preferences);
   }
-  /**
-   * Allows you to specify how to resolve any assets load requests.
-   * There are a few ways to add things here as shown below:
-   * @example
-   * import { Assets } from 'pixi.js';
-   *
-   * // Simple
-   * Assets.add({alias: 'bunnyBooBoo', src: 'bunny.png'});
-   * const bunny = await Assets.load('bunnyBooBoo');
-   *
-   * // Multiple keys:
-   * Assets.add({alias: ['burger', 'chicken'], src: 'bunny.png'});
-   *
-   * const bunny = await Assets.load('burger');
-   * const bunny2 = await Assets.load('chicken');
-   *
-   * // passing options to to the object
-   * Assets.add({
-   *     alias: 'bunnyBooBooSmooth',
-   *     src: 'bunny{png,webp}',
-   *     data: { scaleMode: SCALE_MODES.NEAREST }, // Base texture options
-   * });
-   *
-   * // Multiple assets
-   *
-   * // The following all do the same thing:
-   *
-   * Assets.add({alias: 'bunnyBooBoo', src: 'bunny{png,webp}'});
-   *
-   * Assets.add({
-   *     alias: 'bunnyBooBoo',
-   *     src: [
-   *         'bunny.png',
-   *         'bunny.webp',
-   *    ],
-   * });
-   *
-   * const bunny = await Assets.load('bunnyBooBoo'); // Will try to load WebP if available
-   * @param aliases - the key or keys that you will reference when loading this asset
-   * @param srcs - the asset or assets that will be chosen from when loading via the specified key
-   * @param data - asset-specific data that will be passed to the loaders
-   * - Useful if you want to initiate loaded objects with specific data
-   * @param format - the format of the asset
-   * @param loadParser - the name of the load parser to use
-   */
   add(aliases, srcs, data, format2, loadParser) {
     this.resolver.add(aliases, srcs, data, format2, loadParser);
   }
@@ -16587,12 +16552,12 @@ class AssetsClass {
    *             name: 'load-screen',
    *             assets: [
    *                 {
-   *                     name: 'background',
-   *                     srcs: 'sunset.png',
+   *                     alias: 'background',
+   *                     src: 'sunset.png',
    *                 },
    *                 {
-   *                     name: 'bar',
-   *                     srcs: 'load-bar.{png,webp}',
+   *                     alias: 'bar',
+   *                     src: 'load-bar.{png,webp}',
    *                 },
    *             ],
    *         },
@@ -16600,19 +16565,19 @@ class AssetsClass {
    *             name: 'game-screen',
    *             assets: [
    *                 {
-   *                     name: 'character',
-   *                     srcs: 'robot.png',
+   *                     alias: 'character',
+   *                     src: 'robot.png',
    *                 },
    *                 {
-   *                     name: 'enemy',
-   *                     srcs: 'bad-guy.png',
+   *                     alias: 'enemy',
+   *                     src: 'bad-guy.png',
    *                 },
    *             ],
    *         },
    *     ]
    * };
    *
-   * await Asset.init({ manifest });
+   * await Assets.init({ manifest });
    *
    * // Load a bundle...
    * loadScreenAssets = await Assets.loadBundle('load-screen');
@@ -16842,22 +16807,36 @@ const cacheTextureArray = {
   }
 };
 extensions$1.add(cacheTextureArray);
+async function testImageFormat(imageData) {
+  if ("Image" in globalThis)
+    return new Promise((resolve2) => {
+      const image = new Image();
+      image.onload = () => {
+        resolve2(!0);
+      }, image.onerror = () => {
+        resolve2(!1);
+      }, image.src = imageData;
+    });
+  if ("createImageBitmap" in globalThis && "fetch" in globalThis) {
+    try {
+      const blob = await (await fetch(imageData)).blob();
+      await createImageBitmap(blob);
+    } catch (e2) {
+      return !1;
+    }
+    return !0;
+  }
+  return !1;
+}
 const detectAvif = {
   extension: {
     type: ExtensionType.DetectionParser,
     priority: 1
   },
-  test: async () => {
-    const avifData = "data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAADybWV0YQAAAAAAAAAoaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAGxpYmF2aWYAAAAADnBpdG0AAAAAAAEAAAAeaWxvYwAAAABEAAABAAEAAAABAAABGgAAAB0AAAAoaWluZgAAAAAAAQAAABppbmZlAgAAAAABAABhdjAxQ29sb3IAAAAAamlwcnAAAABLaXBjbwAAABRpc3BlAAAAAAAAAAIAAAACAAAAEHBpeGkAAAAAAwgICAAAAAxhdjFDgQ0MAAAAABNjb2xybmNseAACAAIAAYAAAAAXaXBtYQAAAAAAAAABAAEEAQKDBAAAACVtZGF0EgAKCBgANogQEAwgMg8f8D///8WfhwB8+ErK42A=";
-    return new Promise((resolve2) => {
-      const avif = new Image();
-      avif.onload = () => {
-        resolve2(!0);
-      }, avif.onerror = () => {
-        resolve2(!1);
-      }, avif.src = avifData;
-    });
-  },
+  test: async () => testImageFormat(
+    // eslint-disable-next-line max-len
+    "data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAADybWV0YQAAAAAAAAAoaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAGxpYmF2aWYAAAAADnBpdG0AAAAAAAEAAAAeaWxvYwAAAABEAAABAAEAAAABAAABGgAAAB0AAAAoaWluZgAAAAAAAQAAABppbmZlAgAAAAABAABhdjAxQ29sb3IAAAAAamlwcnAAAABLaXBjbwAAABRpc3BlAAAAAAAAAAIAAAACAAAAEHBpeGkAAAAAAwgICAAAAAxhdjFDgQ0MAAAAABNjb2xybmNseAACAAIAAYAAAAAXaXBtYQAAAAAAAAABAAEEAQKDBAAAACVtZGF0EgAKCBgANogQEAwgMg8f8D///8WfhwB8+ErK42A="
+  ),
   add: async (formats2) => [...formats2, "avif"],
   remove: async (formats2) => formats2.filter((f2) => f2 !== "avif")
 };
@@ -16867,17 +16846,9 @@ const detectWebp = {
     type: ExtensionType.DetectionParser,
     priority: 0
   },
-  test: async () => {
-    const webpData = "data:image/webp;base64,UklGRh4AAABXRUJQVlA4TBEAAAAvAAAAAAfQ//73v/+BiOh/AAA=";
-    return new Promise((resolve2) => {
-      const webp = new Image();
-      webp.onload = () => {
-        resolve2(!0);
-      }, webp.onerror = () => {
-        resolve2(!1);
-      }, webp.src = webpData;
-    });
-  },
+  test: async () => testImageFormat(
+    "data:image/webp;base64,UklGRh4AAABXRUJQVlA4TBEAAAAvAAAAAAfQ//73v/+BiOh/AAA="
+  ),
   add: async (formats2) => [...formats2, "webp"],
   remove: async (formats2) => formats2.filter((f2) => f2 !== "webp")
 };
@@ -16933,13 +16904,13 @@ const resolveTextureUrl = {
     var _a2, _b;
     return {
       resolution: parseFloat((_b = (_a2 = settings.RETINA_PREFIX.exec(value)) == null ? void 0 : _a2[1]) != null ? _b : "1"),
-      format: value.split(".").pop(),
+      format: path.extname(value).slice(1),
       src: value
     };
   }
 };
 extensions$1.add(resolveTextureUrl);
-var INTERNAL_FORMATS = /* @__PURE__ */ ((INTERNAL_FORMATS2) => (INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_RGB_S3TC_DXT1_EXT = 33776] = "COMPRESSED_RGB_S3TC_DXT1_EXT", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_RGBA_S3TC_DXT1_EXT = 33777] = "COMPRESSED_RGBA_S3TC_DXT1_EXT", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_RGBA_S3TC_DXT3_EXT = 33778] = "COMPRESSED_RGBA_S3TC_DXT3_EXT", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_RGBA_S3TC_DXT5_EXT = 33779] = "COMPRESSED_RGBA_S3TC_DXT5_EXT", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT = 35917] = "COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT = 35918] = "COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT = 35919] = "COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_SRGB_S3TC_DXT1_EXT = 35916] = "COMPRESSED_SRGB_S3TC_DXT1_EXT", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_R11_EAC = 37488] = "COMPRESSED_R11_EAC", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_SIGNED_R11_EAC = 37489] = "COMPRESSED_SIGNED_R11_EAC", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_RG11_EAC = 37490] = "COMPRESSED_RG11_EAC", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_SIGNED_RG11_EAC = 37491] = "COMPRESSED_SIGNED_RG11_EAC", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_RGB8_ETC2 = 37492] = "COMPRESSED_RGB8_ETC2", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_RGBA8_ETC2_EAC = 37496] = "COMPRESSED_RGBA8_ETC2_EAC", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_SRGB8_ETC2 = 37493] = "COMPRESSED_SRGB8_ETC2", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_SRGB8_ALPHA8_ETC2_EAC = 37497] = "COMPRESSED_SRGB8_ALPHA8_ETC2_EAC", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2 = 37494] = "COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2 = 37495] = "COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_RGB_PVRTC_4BPPV1_IMG = 35840] = "COMPRESSED_RGB_PVRTC_4BPPV1_IMG", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_RGBA_PVRTC_4BPPV1_IMG = 35842] = "COMPRESSED_RGBA_PVRTC_4BPPV1_IMG", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_RGB_PVRTC_2BPPV1_IMG = 35841] = "COMPRESSED_RGB_PVRTC_2BPPV1_IMG", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_RGBA_PVRTC_2BPPV1_IMG = 35843] = "COMPRESSED_RGBA_PVRTC_2BPPV1_IMG", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_RGB_ETC1_WEBGL = 36196] = "COMPRESSED_RGB_ETC1_WEBGL", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_RGB_ATC_WEBGL = 35986] = "COMPRESSED_RGB_ATC_WEBGL", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_RGBA_ATC_EXPLICIT_ALPHA_WEBGL = 35986] = "COMPRESSED_RGBA_ATC_EXPLICIT_ALPHA_WEBGL", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_RGBA_ATC_INTERPOLATED_ALPHA_WEBGL = 34798] = "COMPRESSED_RGBA_ATC_INTERPOLATED_ALPHA_WEBGL", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_RGBA_ASTC_4x4_KHR = 37808] = "COMPRESSED_RGBA_ASTC_4x4_KHR", INTERNAL_FORMATS2))(INTERNAL_FORMATS || {});
+var INTERNAL_FORMATS = /* @__PURE__ */ ((INTERNAL_FORMATS2) => (INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_RGB_S3TC_DXT1_EXT = 33776] = "COMPRESSED_RGB_S3TC_DXT1_EXT", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_RGBA_S3TC_DXT1_EXT = 33777] = "COMPRESSED_RGBA_S3TC_DXT1_EXT", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_RGBA_S3TC_DXT3_EXT = 33778] = "COMPRESSED_RGBA_S3TC_DXT3_EXT", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_RGBA_S3TC_DXT5_EXT = 33779] = "COMPRESSED_RGBA_S3TC_DXT5_EXT", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT = 35917] = "COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT = 35918] = "COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT = 35919] = "COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_SRGB_S3TC_DXT1_EXT = 35916] = "COMPRESSED_SRGB_S3TC_DXT1_EXT", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_R11_EAC = 37488] = "COMPRESSED_R11_EAC", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_SIGNED_R11_EAC = 37489] = "COMPRESSED_SIGNED_R11_EAC", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_RG11_EAC = 37490] = "COMPRESSED_RG11_EAC", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_SIGNED_RG11_EAC = 37491] = "COMPRESSED_SIGNED_RG11_EAC", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_RGB8_ETC2 = 37492] = "COMPRESSED_RGB8_ETC2", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_RGBA8_ETC2_EAC = 37496] = "COMPRESSED_RGBA8_ETC2_EAC", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_SRGB8_ETC2 = 37493] = "COMPRESSED_SRGB8_ETC2", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_SRGB8_ALPHA8_ETC2_EAC = 37497] = "COMPRESSED_SRGB8_ALPHA8_ETC2_EAC", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2 = 37494] = "COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2 = 37495] = "COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_RGB_PVRTC_4BPPV1_IMG = 35840] = "COMPRESSED_RGB_PVRTC_4BPPV1_IMG", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_RGBA_PVRTC_4BPPV1_IMG = 35842] = "COMPRESSED_RGBA_PVRTC_4BPPV1_IMG", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_RGB_PVRTC_2BPPV1_IMG = 35841] = "COMPRESSED_RGB_PVRTC_2BPPV1_IMG", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_RGBA_PVRTC_2BPPV1_IMG = 35843] = "COMPRESSED_RGBA_PVRTC_2BPPV1_IMG", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_RGB_ETC1_WEBGL = 36196] = "COMPRESSED_RGB_ETC1_WEBGL", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_RGB_ATC_WEBGL = 35986] = "COMPRESSED_RGB_ATC_WEBGL", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_RGBA_ATC_EXPLICIT_ALPHA_WEBGL = 35987] = "COMPRESSED_RGBA_ATC_EXPLICIT_ALPHA_WEBGL", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_RGBA_ATC_INTERPOLATED_ALPHA_WEBGL = 34798] = "COMPRESSED_RGBA_ATC_INTERPOLATED_ALPHA_WEBGL", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_RGBA_ASTC_4x4_KHR = 37808] = "COMPRESSED_RGBA_ASTC_4x4_KHR", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_RGBA_BPTC_UNORM_EXT = 36492] = "COMPRESSED_RGBA_BPTC_UNORM_EXT", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_SRGB_ALPHA_BPTC_UNORM_EXT = 36493] = "COMPRESSED_SRGB_ALPHA_BPTC_UNORM_EXT", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_RGB_BPTC_SIGNED_FLOAT_EXT = 36494] = "COMPRESSED_RGB_BPTC_SIGNED_FLOAT_EXT", INTERNAL_FORMATS2[INTERNAL_FORMATS2.COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT_EXT = 36495] = "COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT_EXT", INTERNAL_FORMATS2))(INTERNAL_FORMATS || {});
 const INTERNAL_FORMAT_TO_BYTES_PER_PIXEL = {
   // WEBGL_compressed_texture_s3tc
   33776: 0.5,
@@ -16974,24 +16945,31 @@ const INTERNAL_FORMAT_TO_BYTES_PER_PIXEL = {
   // @see https://www.khronos.org/registry/OpenGL/extensions/AMD/AMD_compressed_ATC_texture.txt
   // WEBGL_compressed_texture_atc
   35986: 0.5,
-  35986: 1,
+  35987: 1,
   34798: 1,
   // @see https://registry.khronos.org/OpenGL/extensions/KHR/KHR_texture_compression_astc_hdr.txt
   // WEBGL_compressed_texture_astc
   /* eslint-disable-next-line camelcase */
-  37808: 1
+  37808: 1,
+  // @see https://registry.khronos.org/OpenGL/extensions/EXT/EXT_texture_compression_bptc.txt
+  // EXT_texture_compression_bptc
+  36492: 1,
+  36493: 1,
+  36494: 1,
+  36495: 1
 };
 let storedGl, extensions;
 function getCompressedTextureExtensions() {
   extensions = {
+    bptc: storedGl.getExtension("EXT_texture_compression_bptc"),
+    astc: storedGl.getExtension("WEBGL_compressed_texture_astc"),
+    etc: storedGl.getExtension("WEBGL_compressed_texture_etc"),
     s3tc: storedGl.getExtension("WEBGL_compressed_texture_s3tc"),
     s3tc_sRGB: storedGl.getExtension("WEBGL_compressed_texture_s3tc_srgb"),
     /* eslint-disable-line camelcase */
-    etc: storedGl.getExtension("WEBGL_compressed_texture_etc"),
-    etc1: storedGl.getExtension("WEBGL_compressed_texture_etc1"),
     pvrtc: storedGl.getExtension("WEBGL_compressed_texture_pvrtc") || storedGl.getExtension("WEBKIT_WEBGL_compressed_texture_pvrtc"),
-    atc: storedGl.getExtension("WEBGL_compressed_texture_atc"),
-    astc: storedGl.getExtension("WEBGL_compressed_texture_astc")
+    etc1: storedGl.getExtension("WEBGL_compressed_texture_etc1"),
+    atc: storedGl.getExtension("WEBGL_compressed_texture_atc")
   };
 }
 const detectCompressedTextures = {
@@ -17097,15 +17075,21 @@ class CompressedTextureResource extends BlobResource {
   static _formatToExtension(format2) {
     if (format2 >= 33776 && format2 <= 33779)
       return "s3tc";
+    if (format2 >= 35916 && format2 <= 35919)
+      return "s3tc_sRGB";
     if (format2 >= 37488 && format2 <= 37497)
       return "etc";
     if (format2 >= 35840 && format2 <= 35843)
       return "pvrtc";
-    if (format2 >= 36196)
+    if (format2 === 36196)
       return "etc1";
-    if (format2 >= 35986 && format2 <= 34798)
+    if (format2 === 35986 || format2 === 35987 || format2 === 34798)
       return "atc";
-    throw new Error("Invalid (compressed) texture format given!");
+    if (format2 >= 36492 && format2 <= 36495)
+      return "bptc";
+    if (format2 === 37808)
+      return "astc";
+    throw new Error(`Invalid (compressed) texture format given: ${format2}`);
   }
   /**
    * Pre-creates buffer views for each mipmap level
@@ -17168,7 +17152,14 @@ const DDS_MAGIC_SIZE = 4, DDS_HEADER_SIZE = 124, DDS_HEADER_PF_SIZE = 32, DDS_HE
   // WEBGL_compressed_texture_s3tc_srgb
   72: INTERNAL_FORMATS.COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT,
   75: INTERNAL_FORMATS.COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT,
-  78: INTERNAL_FORMATS.COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT
+  78: INTERNAL_FORMATS.COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT,
+  // EXT_texture_compression_bptc
+  // BC6H
+  96: INTERNAL_FORMATS.COMPRESSED_RGB_BPTC_SIGNED_FLOAT_EXT,
+  95: INTERNAL_FORMATS.COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT_EXT,
+  // BC7
+  98: INTERNAL_FORMATS.COMPRESSED_RGBA_BPTC_UNORM_EXT,
+  99: INTERNAL_FORMATS.COMPRESSED_SRGB_ALPHA_BPTC_UNORM_EXT
 };
 function parseDDS(arrayBuffer) {
   const data = new Uint32Array(arrayBuffer);
@@ -17451,34 +17442,27 @@ const loadKTX = {
   }
 };
 extensions$1.add(loadKTX);
-const resolveCompressedTextureUrl = {
+const knownFormats = ["s3tc", "s3tc_sRGB", "etc", "etc1", "pvrtc", "atc", "astc", "bptc"], resolveCompressedTextureUrl = {
   extension: ExtensionType.ResolveParser,
   test: (value) => {
-    const extension = value.split("?")[0].split(".").pop();
+    const extension = path.extname(value).slice(1);
     return ["basis", "ktx", "dds"].includes(extension);
   },
   parse: (value) => {
     var _a2, _b, _c, _d;
-    if (value.split("?")[0].split(".").pop() === "ktx") {
-      const extensions2 = [
-        ".s3tc.ktx",
-        ".s3tc_sRGB.ktx",
-        ".etc.ktx",
-        ".etc1.ktx",
-        ".pvrt.ktx",
-        ".atc.ktx",
-        ".astc.ktx"
-      ];
-      if (extensions2.some((ext) => value.endsWith(ext)))
+    const parts = value.split("."), extension = parts.pop();
+    if (["ktx", "dds"].includes(extension)) {
+      const textureFormat = parts.pop();
+      if (knownFormats.includes(textureFormat))
         return {
           resolution: parseFloat((_b = (_a2 = settings.RETINA_PREFIX.exec(value)) == null ? void 0 : _a2[1]) != null ? _b : "1"),
-          format: extensions2.find((ext) => value.endsWith(ext)),
+          format: textureFormat,
           src: value
         };
     }
     return {
       resolution: parseFloat((_d = (_c = settings.RETINA_PREFIX.exec(value)) == null ? void 0 : _c[1]) != null ? _d : "1"),
-      format: value.split(".").pop(),
+      format: extension,
       src: value
     };
   }
@@ -21954,15 +21938,11 @@ TilingSpriteRenderer.extension = {
 };
 extensions$1.add(TilingSpriteRenderer);
 const _Spritesheet = class _Spritesheet2 {
-  /**
-   * @param texture - Reference to the source BaseTexture object.
-   * @param {object} data - Spritesheet image data.
-   * @param resolutionFilename - The filename to consider when determining
-   *        the resolution of the spritesheet. If not provided, the imageUrl will
-   *        be used on the BaseTexture.
-   */
-  constructor(texture, data, resolutionFilename = null) {
-    this.linkedSheets = [], this._texture = texture instanceof Texture ? texture : null, this.baseTexture = texture instanceof BaseTexture ? texture : this._texture.baseTexture, this.textures = {}, this.animations = {}, this.data = data;
+  /** @ignore */
+  constructor(optionsOrTexture, arg1, arg2) {
+    this.linkedSheets = [], (optionsOrTexture instanceof BaseTexture || optionsOrTexture instanceof Texture) && (optionsOrTexture = { texture: optionsOrTexture, data: arg1, resolutionFilename: arg2 });
+    const { texture, data, resolutionFilename = null, cachePrefix = "" } = optionsOrTexture;
+    this.cachePrefix = cachePrefix, this._texture = texture instanceof Texture ? texture : null, this.baseTexture = texture instanceof BaseTexture ? texture : this._texture.baseTexture, this.textures = {}, this.animations = {}, this.data = data;
     const resource = this.baseTexture.resource;
     this.resolution = this._updateResolution(resolutionFilename || (resource ? resource.url : null)), this._frames = this.data.frames, this._frameKeys = Object.keys(this._frames), this._batchIndex = 0, this._callback = null;
   }
@@ -21976,7 +21956,7 @@ const _Spritesheet = class _Spritesheet2 {
   _updateResolution(resolutionFilename = null) {
     const { scale } = this.data.meta;
     let resolution = getResolutionOfUrl(resolutionFilename, null);
-    return resolution === null && (resolution = parseFloat(scale != null ? scale : "1")), resolution !== 1 && this.baseTexture.setResolution(resolution), resolution;
+    return resolution === null && (resolution = typeof scale == "number" ? scale : parseFloat(scale != null ? scale : "1")), resolution !== 1 && this.baseTexture.setResolution(resolution), resolution;
   }
   /**
    * Parser spritesheet from loaded data. This is done asynchronously
@@ -22028,7 +22008,7 @@ const _Spritesheet = class _Spritesheet2 {
           data.rotated ? 2 : 0,
           data.anchor,
           data.borders
-        ), Texture.addToCache(this.textures[i2], i2.toString());
+        ), Texture.addToCache(this.textures[i2], this.cachePrefix + i2.toString());
       }
       frameIndex++;
     }
@@ -22068,18 +22048,35 @@ const _Spritesheet = class _Spritesheet2 {
 };
 _Spritesheet.BATCH_SIZE = 1e3;
 let Spritesheet = _Spritesheet;
-const validImages = ["jpg", "png", "jpeg", "avif", "webp"];
+const validImages = [
+  "jpg",
+  "png",
+  "jpeg",
+  "avif",
+  "webp",
+  "s3tc",
+  "s3tc_sRGB",
+  "etc",
+  "etc1",
+  "pvrtc",
+  "atc",
+  "astc",
+  "bptc"
+];
 function getCacheableAssets(keys, asset, ignoreMultiPack) {
   const out = {};
   if (keys.forEach((key) => {
     out[key] = asset;
   }), Object.keys(asset.textures).forEach((key) => {
-    out[key] = asset.textures[key];
+    out[`${asset.cachePrefix}${key}`] = asset.textures[key];
   }), !ignoreMultiPack) {
     const basePath = path.dirname(keys[0]);
     asset.linkedSheets.forEach((item, i2) => {
-      const out2 = getCacheableAssets([`${basePath}/${asset.data.meta.related_multi_packs[i2]}`], item, !0);
-      Object.assign(out, out2);
+      Object.assign(out, getCacheableAssets(
+        [`${basePath}/${asset.data.meta.related_multi_packs[i2]}`],
+        item,
+        !0
+      ));
     });
   }
   return out;
@@ -22124,25 +22121,39 @@ const spritesheetAsset = {
       return path.extname(options.src).toLowerCase() === ".json" && !!asset.frames;
     },
     async parse(asset, options, loader) {
-      var _a2, _b;
+      var _a2, _b, _c;
+      const {
+        texture: imageTexture,
+        // if user need to use preloaded texture
+        imageFilename,
+        // if user need to use custom filename (not from jsonFile.meta.image)
+        cachePrefix
+        // if user need to use custom cache prefix
+      } = (_a2 = options == null ? void 0 : options.data) != null ? _a2 : {};
       let basePath = path.dirname(options.src);
       basePath && basePath.lastIndexOf("/") !== basePath.length - 1 && (basePath += "/");
-      let imagePath = basePath + asset.meta.image;
-      imagePath = copySearchParams(imagePath, options.src);
-      const texture = (await loader.load([imagePath]))[imagePath], spritesheet = new Spritesheet(
-        texture.baseTexture,
-        asset,
-        options.src
-      );
+      let texture;
+      if (imageTexture && imageTexture.baseTexture)
+        texture = imageTexture;
+      else {
+        const imagePath = copySearchParams(basePath + (imageFilename != null ? imageFilename : asset.meta.image), options.src);
+        texture = (await loader.load([imagePath]))[imagePath];
+      }
+      const spritesheet = new Spritesheet({
+        texture: texture.baseTexture,
+        data: asset,
+        resolutionFilename: options.src,
+        cachePrefix
+      });
       await spritesheet.parse();
-      const multiPacks = (_a2 = asset == null ? void 0 : asset.meta) == null ? void 0 : _a2.related_multi_packs;
+      const multiPacks = (_b = asset == null ? void 0 : asset.meta) == null ? void 0 : _b.related_multi_packs;
       if (Array.isArray(multiPacks)) {
         const promises = [];
         for (const item of multiPacks) {
           if (typeof item != "string")
             continue;
           let itemUrl = basePath + item;
-          (_b = options.data) != null && _b.ignoreMultiPack || (itemUrl = copySearchParams(itemUrl, options.src), promises.push(loader.load({
+          (_c = options.data) != null && _c.ignoreMultiPack || (itemUrl = copySearchParams(itemUrl, options.src), promises.push(loader.load({
             src: itemUrl,
             data: {
               ignoreMultiPack: !0

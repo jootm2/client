@@ -1,9 +1,8 @@
 import { Images } from "./image/Images.mjs"
 import { Maps } from "./map/Maps.mjs"
-import { MapActor } from "./actor/MapActor.mjs"
-import { M2Texture } from "./image/M2Texture.mjs"
 
 async function init(resourcesJsonUrl) {
+    globalThis.BaseTextureCache = new Array
     try {
         const resp = await fetch(resourcesJsonUrl);
         const baseUrl = resourcesJsonUrl.substring(0, resourcesJsonUrl.lastIndexOf("/") + 1)

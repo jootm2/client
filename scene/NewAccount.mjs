@@ -23,7 +23,7 @@ class NewAccountScene {
     update() {
         if (this.need_loading.length > 0) {
             for (const [key, value] of this.need_loading) {
-                const tex = PIXI.utils.BaseTextureCache[`${key}/${value}`]
+                const tex = globalThis.BaseTextureCache[`${key}/${value}`]
                 if (!tex) {
                     Images.load(key, value)
                     return
@@ -32,11 +32,11 @@ class NewAccountScene {
             this.need_loading = new Array
 
             // 背景图
-            this.sp_new_account_bg= new PIXI.Sprite(new PIXI.Texture(PIXI.utils.BaseTextureCache['prguse/63']))
+            this.sp_new_account_bg= new PIXI.Sprite(new PIXI.Texture(globalThis.BaseTextureCache['prguse/63']))
             this.sp_new_account_bg.x = (this.view_width - this.sp_new_account_bg.width) / 2
             this.sp_new_account_bg.y = (this.view_height - this.sp_new_account_bg.height) / 2
             // 关闭按钮
-            const bt_new_account_close = PIXI.utils.BaseTextureCache['prguse/64']
+            const bt_new_account_close = globalThis.BaseTextureCache['prguse/64']
             const dom_new_account_close = document.getElementById("new_account_close")
             dom_new_account_close.style.left = `${this.sp_new_account_bg.x + 587}px`
             dom_new_account_close.style.top = `${this.sp_new_account_bg.y + 33}px`
@@ -58,7 +58,7 @@ class NewAccountScene {
                 this.close_click()
             }
             // 提交按钮
-            const bt_new_account_ok = PIXI.utils.BaseTextureCache['prguse/62']
+            const bt_new_account_ok = globalThis.BaseTextureCache['prguse/62']
             const dom_new_account_ok = document.getElementById("new_account_ok")
             dom_new_account_ok.style.left = `${this.sp_new_account_bg.x + 158}px`
             dom_new_account_ok.style.top = `${this.sp_new_account_bg.y + 416}px`
@@ -80,7 +80,7 @@ class NewAccountScene {
                 this.ok_click()
             }
             // 取消按钮
-            const bt_new_account_cancel = PIXI.utils.BaseTextureCache['prguse/52']
+            const bt_new_account_cancel = globalThis.BaseTextureCache['prguse/52']
             const dom_new_account_cancel = document.getElementById("new_account_cancel")
             dom_new_account_cancel.style.left = `${this.sp_new_account_bg.x + 446}px`
             dom_new_account_cancel.style.top = `${this.sp_new_account_bg.y + 419}px`

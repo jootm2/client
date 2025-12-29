@@ -18,13 +18,14 @@ class LoginScene {
         this.sp_login_close = null // 关闭按钮贴图精灵对象（按下）
         this.sp_new_account = null // 新用户按钮贴图精灵对象（按下）
         this.sp_chpsw = null // 修改密码按钮贴图精灵对象（按下）
+        this.sp_login_ok = null // 提交按钮贴图精灵对象（按下）
         this.first_update = false // 是否初次从其他场景切换过来
     }
 
     update() {
         if (this.need_loading.length > 0) {
             for (const [key, value] of this.need_loading) {
-                const tex = PIXI.utils.BaseTextureCache[`${key}/${value}`]
+                const tex = globalThis.BaseTextureCache[`${key}/${value}`]
                 if (!tex) {
                     Images.load(key, value)
                     return
@@ -33,11 +34,11 @@ class LoginScene {
             this.need_loading = new Array
 
             // 展示背景图
-            this.sp_login_bg= new PIXI.Sprite(new PIXI.Texture(PIXI.utils.BaseTextureCache['prguse/60']))
+            this.sp_login_bg= new PIXI.Sprite(new PIXI.Texture(globalThis.BaseTextureCache['prguse/60']))
             this.sp_login_bg.x = (this.view_width - this.sp_login_bg.width) / 2
             this.sp_login_bg.y = (this.view_height - this.sp_login_bg.height) / 2
             // 关闭按钮
-            const bt_login_close = PIXI.utils.BaseTextureCache['prguse/64']
+            const bt_login_close = globalThis.BaseTextureCache['prguse/64']
             const dom_login_close = document.getElementById("login_close")
             dom_login_close.style.left = `${this.sp_login_bg.x + 252}px`
             dom_login_close.style.top = `${this.sp_login_bg.y + 28}px`
@@ -67,16 +68,16 @@ class LoginScene {
             dom_login_psw.style.left = `${this.sp_login_bg.x + 98}px`
             dom_login_psw.style.top = `${this.sp_login_bg.y + 117}px`
             // 新用户
-            const bt_newuser = PIXI.utils.BaseTextureCache['prguse/61']
+            const bt_newuser = globalThis.BaseTextureCache['prguse/61']
             const dom_new_account = document.getElementById("new_account")
-            dom_new_account.style.left = `${this.sp_login_bg.x + 24}px`
+            dom_new_account.style.left = `${this.sp_login_bg.x + 25}px`
             dom_new_account.style.top = `${this.sp_login_bg.y + 207}px`
             dom_new_account.style.width = `${bt_newuser.width}px`
             dom_new_account.style.height = `${bt_newuser.height}px`
             dom_new_account.onmousedown = (event) => {
                 if (!!!this.sp_new_account) {
                     this.sp_new_account = new PIXI.Sprite(new PIXI.Texture(bt_newuser))
-                    this.sp_new_account.x = this.sp_login_bg.x + 24
+                    this.sp_new_account.x = this.sp_login_bg.x + 25
                     this.sp_new_account.y = this.sp_login_bg.y + 207
                 }
                 this.pixi_parent.addChild(this.sp_new_account)
@@ -89,16 +90,16 @@ class LoginScene {
                 this.new_account_click()
             }
             // 修改密码
-            const bt_chpsw = PIXI.utils.BaseTextureCache['prguse/53']
+            const bt_chpsw = globalThis.BaseTextureCache['prguse/53']
             const dom_chpsw = document.getElementById("chpsw")
-            dom_chpsw.style.left = `${this.sp_login_bg.x + 128}px`
+            dom_chpsw.style.left = `${this.sp_login_bg.x + 130}px`
             dom_chpsw.style.top = `${this.sp_login_bg.y + 207}px`
             dom_chpsw.style.width = `${bt_chpsw.width}px`
             dom_chpsw.style.height = `${bt_chpsw.height}px`
             dom_chpsw.onmousedown = (event) => {
                 if (!!!this.sp_chpsw) {
                     this.sp_chpsw = new PIXI.Sprite(new PIXI.Texture(bt_chpsw))
-                    this.sp_chpsw.x = this.sp_login_bg.x + 128
+                    this.sp_chpsw.x = this.sp_login_bg.x + 130
                     this.sp_chpsw.y = this.sp_login_bg.y + 207
                 }
                 this.pixi_parent.addChild(this.sp_chpsw)
@@ -109,6 +110,28 @@ class LoginScene {
             dom_chpsw.onmouseup = (event) => {
                 this.pixi_parent.removeChild(this.sp_chpsw)
                 this.chpsw_click()
+            }
+            // 提交
+            const bt_login_ok = globalThis.BaseTextureCache['prguse/62']
+            const dom_login_ok = document.getElementById("login_ok")
+            dom_login_ok.style.left = `${this.sp_login_bg.x + 169}px`
+            dom_login_ok.style.top = `${this.sp_login_bg.y + 163}px`
+            dom_login_ok.style.width = `${bt_login_ok.width}px`
+            dom_login_ok.style.height = `${bt_login_ok.height}px`
+            dom_login_ok.onmousedown = (event) => {
+                if (!!!this.sp_login_ok) {
+                    this.sp_login_ok = new PIXI.Sprite(new PIXI.Texture(bt_login_ok))
+                    this.sp_login_ok.x = this.sp_login_bg.x + 169
+                    this.sp_login_ok.y = this.sp_login_bg.y + 163
+                }
+                this.pixi_parent.addChild(this.sp_login_ok)
+            }
+            dom_login_ok.onmouseleave = (event) => {
+                this.pixi_parent.removeChild(this.sp_login_ok)
+            }
+            dom_login_ok.onmouseup = (event) => {
+                this.pixi_parent.removeChild(this.sp_login_ok)
+                this.ok_click()
             }
         }
         if (this.first_update) {
@@ -146,6 +169,11 @@ class LoginScene {
     // 用户点击修改密码按钮
     chpsw_click() {
         this.manager.change_scene(2)
+    }
+
+    // 提交
+    ok_click() {
+
     }
 }
 

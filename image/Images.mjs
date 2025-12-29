@@ -38,7 +38,7 @@ class Images {
                 wil.onTextureLoad((no, tex) => {
                     const pixiTex = PIXI.BaseTexture.fromBuffer(tex.pixels, tex.width, tex.height);
                     if (pixiTex) {
-                        PIXI.utils.BaseTextureCache[`${libName}/${no}`] = pixiTex
+                        globalThis.BaseTextureCache[`${libName}/${no}`] = pixiTex
                     }
                     if (textureConsumer != null) {
                         textureConsumer(libName, no, tex)
