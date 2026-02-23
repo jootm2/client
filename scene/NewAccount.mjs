@@ -55,7 +55,7 @@ class NewAccountScene {
             }
             dom_new_account_close.onmouseup = (event) => {
                 this.pixi_parent.removeChild(this.sp_new_account_close)
-                this.close_click()
+                this.cancel_click()
             }
             // 提交按钮
             const bt_new_account_ok = globalThis.BaseTextureCache['prguse/62']
@@ -99,7 +99,7 @@ class NewAccountScene {
             }
             dom_new_account_cancel.onmouseup = (event) => {
                 this.pixi_parent.removeChild(this.sp_new_account_cancel)
-                this.close_click()
+                this.cancel_click()
             }
             // 提示信息
             const dom_new_account_help = document.getElementById("new_account_help")
@@ -116,20 +116,20 @@ class NewAccountScene {
                 +'我们建议你用一个不同的名字，\n和你想给游戏角色用的那个区别开来。'
             }
             // 密码
-            const dom_new_account_psw = document.getElementById("new_account_psw")
-            dom_new_account_psw.style.left = `${this.sp_new_account_bg.x + 161}px`
-            dom_new_account_psw.style.top = `${this.sp_new_account_bg.y + 137}px`
-            dom_new_account_psw.onfocus = (event) => {
+            const dom_new_account_pw = document.getElementById("new_account_pw")
+            dom_new_account_pw.style.left = `${this.sp_new_account_bg.x + 161}px`
+            dom_new_account_pw.style.top = `${this.sp_new_account_bg.y + 137}px`
+            dom_new_account_pw.onfocus = (event) => {
                 dom_new_account_help.value = '你的密码可以是一个组合，\n'
                 +'包括：字符和数字。\n而且它至少要有4位。\n\n把你的密码记住是'
                 +'玩我们的游戏最基本的要素，\n所以请确认你已经记好了它。\n\n我们建议你最好不要用'
                 +'一个简单的密码，\n以消除一些不安全因素'
             }
             // 确认密码
-            const dom_new_account_psw2 = document.getElementById("new_account_psw2")
-            dom_new_account_psw2.style.left = `${this.sp_new_account_bg.x + 161}px`
-            dom_new_account_psw2.style.top = `${this.sp_new_account_bg.y + 158}px`
-            dom_new_account_psw2.onfocus = (event) => {
+            const dom_new_account_pw2 = document.getElementById("new_account_pw2")
+            dom_new_account_pw2.style.left = `${this.sp_new_account_bg.x + 161}px`
+            dom_new_account_pw2.style.top = `${this.sp_new_account_bg.y + 158}px`
+            dom_new_account_pw2.onfocus = (event) => {
                 dom_new_account_help.value = '再次输入密码以确认'
             }
             // 姓名
@@ -220,8 +220,8 @@ class NewAccountScene {
         this.pixi_parent.removeChild(this.sp_new_account_bg)
     }
 
-    // 用户点击关闭按钮
-    close_click() {
+    // 用户点击取消按钮
+    cancel_click() {
         this.manager.change_scene(0)
     }
 

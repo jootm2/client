@@ -12,23 +12,15 @@
             left: 0px;
             top: 0px;
         }
-        #login_window {
+        #login_window, #new_account_window, #chgpwd_window {
             position: relative;
             left: 0px;
             top: 0px;
             visibility: hidden;
         }
-        #login_id {
+        #login_id, #login_pw, #chgpwd_id, #chgpwd_cur_pw,
+        #chgpwd_new_pw, #chgpwd_repeat_pw {
             width: 140px;
-        }
-        #login_psw {
-            width: 140px;
-        }
-        #new_account_window {
-            position: relative;
-            left: 0px;
-            top: 0px;
-            visibility: hidden;
         }
         #new_account_help {
             font-size: 14px;
@@ -45,7 +37,7 @@
         <canvas id="game_canvas">Loading...</canvas>
         <div id="login_window">
             <input id="login_id" class="normal_input" maxlength="10"/>
-            <input id="login_psw" class="normal_input" type="password" maxlength="10"/>
+            <input id="login_pw" class="normal_input" type="password" maxlength="10"/>
             <button id="login_ok" class="normal_button">ok</button>
             <button id="login_close" class="normal_button">x</button>
             <button id="new_account" class="normal_button">new</button>
@@ -56,8 +48,8 @@
             <button id="new_account_ok" class="normal_button">ok</button>
             <button id="new_account_cancel" class="normal_button">cancel</button>
             <input id="new_account_id" class="normal_input" maxlength="10" />
-            <input id="new_account_psw" class="normal_input" type="password" maxlength="10" />
-            <input id="new_account_psw2" class="normal_input" type="password" maxlength="10" />
+            <input id="new_account_pw" class="normal_input" type="password" maxlength="10" />
+            <input id="new_account_pw2" class="normal_input" type="password" maxlength="10" />
             <input id="new_account_yourname" class="normal_input" maxlength="20" />
             <input id="new_account_birthday" class="normal_input" maxlength="10" />
             <input id="new_account_quiz1" class="normal_input" maxlength="20" />
@@ -68,6 +60,14 @@
             <input id="new_account_mobphone" class="normal_input" maxlength="13" />
             <input id="new_account_email" class="normal_input" maxlength="40" />
             <textarea id="new_account_help" class="normal_input" readonly></textarea>
+        </div>
+        <div id="chgpwd_window">
+            <button id="chgpwd_ok" class="normal_button">ok</button>
+            <button id="chgpwd_cancel" class="normal_button">x</button>
+            <input id="chgpwd_id" class="normal_input" maxlength="10" />
+            <input id="chgpwd_cur_pw" class="normal_input" type="password" maxlength="10" />
+            <input id="chgpwd_new_pw" class="normal_input" type="password" maxlength="10" />
+            <input id="chgpwd_repeat_pw" class="normal_input" type="password" maxlength="10" />
         </div>
     </div>
     <script type="module">
@@ -106,9 +106,9 @@
         const allInputs = document.querySelectorAll('input')
         allInputs.forEach(input => {
           input.autocomplete = 'off'
-          input.autocorrect = "off"
-          input.autocapitalize = "off"
-        });
-    });
+          input.autocorrect = 'off'
+          input.autocapitalize = 'off'
+        })
+      })
   </script>
 </body>
