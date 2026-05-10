@@ -1298,4 +1298,12 @@ function colorCountToBitCount(colorCount) {
     return 32;
 }
 
-export { Palletes, widthBytes, skipBytes, colorCountToBitCount };
+// 客户端服务端消息定义
+const Messages = Object.freeze({
+    CM_ADDNEWUSER: 2002,
+    
+    SM_NEWID_SUCCESS: 504,
+    SM_NEWID_FAIL: 505,
+});
+
+export { Palletes, widthBytes, skipBytes, colorCountToBitCount, Messages };
