@@ -4,7 +4,7 @@ import * as SDK from "../SDK.mjs"
 
 class NewAccountScene {
     constructor(params, manager) {
-        this.pixi_parent = params.ui_layer // 生成的贴图元素需要停靠的父级树节点
+        this.pixi_parent = params.game_layer // 生成的贴图元素需要停靠的父级树节点
         this.manager = manager // 场景管理对象
         this.view_width = params.width // 视区宽度
         this.view_height = params.height // 视区高度

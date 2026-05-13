@@ -7,10 +7,13 @@
         #game_area {
             position: relative;
         }
-        #game_canvas {
+        #game_canvas, #game_control, #ui_cavans, #ui_control {
             position: absolute;
             left: 0px;
             top: 0px;
+        }
+        #game_control, #ui_control {
+            visibility: hidden;
         }
         #login_window {
             position: absolute;
@@ -59,7 +62,11 @@
 
 <body>
     <div id="game_area">
+        <!-- 游戏地图、精灵、特效绘制canvas -->
         <canvas id="game_canvas">Loading...</canvas>
+        <!-- 游戏内文字标签等包裹块，例如名字、血量 -->
+        <div id="game_control"></div>
+        <!-- 登录窗体 -->
         <div id="login_window">
             <input id="login_id" class="normal_input" maxlength="10"/>
             <input id="login_psw" class="normal_input" type="password" maxlength="10"/>
@@ -68,6 +75,7 @@
             <button id="new_account" class="normal_button">new</button>
             <button id="chpsw" class="normal_button">chpsw</button>
         </div>
+        <!-- 创建账号窗体 -->
         <div id="new_account_window">
             <button id="new_account_close" class="normal_button">x</button>
             <button id="new_account_ok" class="normal_button">ok</button>
@@ -86,8 +94,16 @@
             <input id="new_account_email" class="normal_input" maxlength="40" />
             <textarea id="new_account_help" class="normal_input" readonly></textarea>
         </div>
+
+        <!-- 游戏内窗体绘制（背包、人物属性、技能、交易、行会） -->
+        <canvas id="ui_canvas">Loading...</canvas>
+        <!-- 控件对应dom树节点包裹 -->
+        <div id="ui_control"></div>
+
+        <!-- 消息对话框、输入框（公告、退出确认、商铺购买个数） -->
         <div id="frm_dlg">
             <div id="frm_dlg_shadow"></div>
+            <canvas id="frm_dlg_canvas">Loading...</canvas>
             <div id="frm_dlg_window">
                 <p id="frm_dlg_label">x</p>
                 <input id="frm_dlg_input" maxlength="11" />
@@ -105,21 +121,46 @@
         const game_width = 800
         const game_height = 600
         const game_canvas = document.getElementById("game_canvas")
+        const game_control = document.getElementById("game_control")
+        game_control.style.width = `${game_width}px`
+        game_control.style.height = `${game_height}px`
+        const ui_canvas = document.getElementById("ui_canvas")
+        const ui_control = document.getElementById("ui_control")
+        ui_control.style.width = `${game_width}px`
+        ui_control.style.height = `${game_height}px`
+        const dlg_canvas = document.getElementById("frm_dlg_canvas")
 
         await JootM2.init("http://localhost:55842/resources.json")
+        // 绘制地图、人物、怪物、NPC、掉落物品、技能特效等
+        const game_app = new PIXI.Application({ background: '#000', width: game_width, height: game_height, view: game_canvas })
+        const game_container = new PIXI.Container
+        game_app.stage.addChild(game_container)
+        // 绘制背包、属性、技能等
+        const ui_app = new PIXI.Application({ backgroundAlpha: 0, width: game_width, height: game_height, view: ui_canvas })
+        const ui_container = new PIXI.Container
+        ui_app.stage.addChild(ui_container)
+        // 绘制模态对话框（公告、确定取消、输入框）等
+        const dlg_app = new PIXI.Application({ backgroundAlpha: 0, width: game_width, height: game_height, view: dlg_canvas })
+        const dlg_container = new PIXI.Container
+        dlg_app.stage.addChild(dlg_container)
 
-        const app = new PIXI.Application({ background: '#000', width: game_width, height: game_height, view: game_canvas })
-        const sprite_layer = new PIXI.Container // 绘制地图、人物、怪物、NPC、掉落物品、技能特效等
-        const ui_container = new PIXI.Container // 绘制背包、属性、技能等（登录等场景也放入这个层，不另外设立）
-        const dlg_container = new PIXI.Container // 绘制模态对话框（公告、确定取消、输入框）等
-        app.stage.addChild(sprite_layer)
-        app.stage.addChild(ui_container)
-        app.stage.addChild(dlg_container)
-
-        const scene_manager = new SceneManager({dlg_layer: dlg_container, ui_layer: ui_container, width: game_width, height: game_height, server_base_url: "ws://127.0.0.1:7000"})
+        const scene_manager = new SceneManager({dlg_layer: dlg_container
+            , ui_layer: ui_container
+            , game_layer: game_container
+            , width: game_width
+            , height: game_height
+            , server_base_url: "ws://127.0.0.1:7000"})
         scene_manager.change_scene(0)
 
-        app.ticker.add((delta) => {
+        /*game_app.ticker.start()
+        ui_app.ticker.start()
+        dlg_app.ticker.start()
+       game_app.ticker.add((delta) => {
+            scene_manager.update()
+       })*/
+        const ticker = PIXI.Ticker.shared
+        ticker.autoStart = true
+        ticker.add((delta) => {
             scene_manager.update()
         })
     </script>

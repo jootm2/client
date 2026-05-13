@@ -4,7 +4,7 @@ import * as SDK from "../SDK.mjs"
 
 class LoginScene {
     constructor(params, manager) {
-        this.pixi_parent = params.ui_layer // 生成的贴图元素需要停靠的父级树节点
+        this.pixi_parent = params.game_layer // 生成的贴图元素需要停靠的父级树节点
         this.manager = manager // 场景管理对象
         this.view_width = params.width // 视区宽度
         this.view_height = params.height // 视区高度
@@ -174,14 +174,6 @@ class LoginScene {
 
     // 提交
     ok_click() {
-        /*this.manager.dlg_message("您的帐号创建成功。\\" +
-    "请妥善保管您的帐号和密码，\\并且不要因任何原因把帐号和密码告诉任何其他人。\\" +
-    "如果忘记了密码,\\你可以通过我们的主页重新找回。")*/
-        /*this.manager.dlg_message("您的帐号创建成功。\\" +
-    "请妥善保管您的帐号和密码，\\并且不要因任何原因把帐号和密码告诉任何其他人。\\" +
-    "如果忘记了密码,\\你可以通过我们的主页重新找回。", [SDK.DlgButtons.mbOk])*/
-    //this.manager.dlg_message("你是否退出 ?", [SDK.DlgButtons.mbOk, SDK.DlgButtons.mbCancel])
-    this.manager.dlg_message("[林星] 是否开始训练", [SDK.DlgButtons.mbYes, SDK.DlgButtons.mbNo])
     }
 }
 
