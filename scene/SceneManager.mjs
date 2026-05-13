@@ -3,6 +3,8 @@ import { NewAccountScene } from "./NewAccount.mjs"
 import { GB2312Encoder } from "../GB2312Encoder.mjs"
 import { EDcode } from "../EDcode.mjs"
 import * as SDK from "../SDK.mjs"
+import { Images } from "../image/Images.mjs"
+import * as PIXI from "../pixi.mjs"
 
 class SceneManager {
     constructor(params) {
@@ -15,11 +17,170 @@ class SceneManager {
         }
         this.send_idx = 1
         this.edcode = new EDcode(10000)
-        this.gb2312_encoder = new GB2312Encoder()
-        this.utf8_encoder = new TextEncoder()
+        this.gb2312_encoder = new GB2312Encoder
+        this.utf8_encoder = new TextEncoder
+        this.need_loading = new Array // 需要加载的图片
+        this.view_width = params.width // 视区宽度
+        this.view_height = params.height // 视区高度
+        // begine 对话框相关
+        this.frm_dlg_pixi_parent = params.dlg_layer
+        this.dom_frm_dlg = document.getElementById("frm_dlg")
+        this.dom_frm_dlg_shadow = document.getElementById("frm_dlg_shadow")
+        this.dom_frm_dlg_shadow.style.width = `${params.width}px`
+        this.dom_frm_dlg_shadow.style.height = `${params.height}px`
+        this.dom_frm_dlg_window = document.getElementById("frm_dlg_window")
+        this.dom_frm_dlg_label = document.getElementById("frm_dlg_label")
+        this.dom_frm_dlg_input = document.getElementById("frm_dlg_input")
+        this.dom_frm_dlg_ok = document.getElementById("frm_dlg_ok")
+        this.dom_frm_dlg_cancel = document.getElementById("frm_dlg_cancel")
+        this.need_loading.push(["prguse", 360]) // 背景
+        this.need_loading.push(["prguse", 380]) // 背景（健康公告）
+        this.need_loading.push(["prguse", 361]) // mbOk
+        this.need_loading.push(["prguse", 362])
+        this.need_loading.push(["prguse", 363]) // mbYes
+        this.need_loading.push(["prguse", 364])
+        this.need_loading.push(["prguse", 365]) // mbCancel
+        this.need_loading.push(["prguse", 366])
+        this.need_loading.push(["prguse", 367]) // mbNo
+        this.need_loading.push(["prguse", 368])
+        this.sp_frm_dlg_bg = null
+        this.sp_frm_dlg_ok = null
+        this.sp_frm_dlg_cancel = null
+        this.sp_frm_dlg_cancel_down = null
+        // end 对话框相关
+    }
+
+    _close_dlg() {
+        this.frm_dlg_pixi_parent.removeChildren()
+        this.dom_frm_dlg.style.visibility = "hidden"
+        this.dom_frm_dlg_label.style.visibility = "hidden"
+        this.dom_frm_dlg_input.style.visibility = "hidden"
+        this.dom_frm_dlg_ok.style.visibility = "hidden"
+        this.dom_frm_dlg_cancel.style.visibility = "hidden"
+    }
+    dlg_message(text, btns, callback) {
+        this._close_dlg()
+
+        this.dom_frm_dlg.style.visibility = "visible"
+        // 展示背景图
+        this.sp_frm_dlg_bg = new PIXI.Sprite(new PIXI.Texture(globalThis.BaseTextureCache['prguse/360']))
+        this.sp_frm_dlg_bg.x = (this.view_width - this.sp_frm_dlg_bg.width) / 2
+        this.sp_frm_dlg_bg.y = (this.view_height - this.sp_frm_dlg_bg.height) / 2
+        this.dom_frm_dlg_window.style.left = `${this.sp_frm_dlg_bg.x}px`
+        this.dom_frm_dlg_window.style.top = `${this.sp_frm_dlg_bg.y}px`
+        this.dom_frm_dlg_window.style.width = `${this.sp_frm_dlg_bg.width}px`
+        this.dom_frm_dlg_window.style.height = `${this.sp_frm_dlg_bg.height}px`
+        this.frm_dlg_pixi_parent.addChild(this.sp_frm_dlg_bg)
+        
+        // 按钮的坐标
+        let mb_left = 324
+        let mb_top = 126
+        // 提示文本的坐标
+        const msgx = 39
+        const msgy = 38
+
+        if (text) {
+            this.dom_frm_dlg_label.innerHTML = SDK.transtring(text)
+            this.dom_frm_dlg_label.style.visibility = "visible"
+            this.dom_frm_dlg_label.style.left = `${msgx}px`
+            this.dom_frm_dlg_label.style.top = `${msgy}px`
+        }
+
+        if (!!btns) {
+            if (btns.includes(SDK.DlgButtons.mbCancel) || btns.includes(SDK.DlgButtons.mbNo)) {
+                const img_id = btns.includes(SDK.DlgButtons.mbCancel) ? 365 : 367
+                this.sp_frm_dlg_cancel = new PIXI.Sprite(new PIXI.Texture(globalThis.BaseTextureCache[`prguse/${img_id}`]))
+                const bt_frm_dlg_cancel_down = globalThis.BaseTextureCache[`prguse/${img_id+1}`]
+                this.sp_frm_dlg_cancel.x = this.sp_frm_dlg_bg.x + mb_left
+                this.sp_frm_dlg_cancel.y = this.sp_frm_dlg_bg.y + mb_top
+                this.dom_frm_dlg_cancel.style.left = `${mb_left}px`
+                this.dom_frm_dlg_cancel.style.top = `${mb_top}px`
+                this.dom_frm_dlg_cancel.style.width = `${bt_frm_dlg_cancel_down.width}px`
+                this.dom_frm_dlg_cancel.style.height = `${bt_frm_dlg_cancel_down.height}px`
+                this.frm_dlg_pixi_parent.addChild(this.sp_frm_dlg_cancel)
+                this.dom_frm_dlg_cancel.style.visibility = "visible"
+                this.dom_frm_dlg_cancel.onmousedown = (event) => {
+                    if (!!!this.sp_frm_dlg_cancel_down) {
+                        this.sp_frm_dlg_cancel_down = new PIXI.Sprite(new PIXI.Texture(bt_frm_dlg_cancel_down))
+                        this.sp_frm_dlg_cancel_down.x = this.sp_frm_dlg_cancel.x
+                        this.sp_frm_dlg_cancel_down.y = this.sp_frm_dlg_cancel.y
+                    }
+                    this.frm_dlg_pixi_parent.addChild(this.sp_frm_dlg_cancel_down)
+                }
+                this.dom_frm_dlg_cancel.onmouseleave = (event) => {
+                    this.frm_dlg_pixi_parent.removeChild(this.sp_frm_dlg_cancel_down)
+                }
+                this.dom_frm_dlg_cancel.onmouseup = (event) => {
+                    this.frm_dlg_pixi_parent.removeChild(this.sp_frm_dlg_cancel_down)
+                    this.sp_frm_dlg_cancel_down = null
+                    this._close_dlg()
+                    if (!!callback) {
+                        callback(btns.includes(SDK.DlgButtons.mbCancel) ? SDK.DlgButtons.mbCancel : SDK.DlgButtons.mbNo)
+                    }
+                }
+                mb_left -= 110
+            }
+        } else {
+            btns = [SDK.DlgButtons.mbOk]
+        }
+
+        if (btns.includes(SDK.DlgButtons.mbOk) || btns.includes(SDK.DlgButtons.mbYes)) {
+            const img_id = btns.includes(SDK.DlgButtons.mbOk) ? 361 : 363
+            this.sp_frm_dlg_ok = new PIXI.Sprite(new PIXI.Texture(globalThis.BaseTextureCache[`prguse/${img_id}`]))
+            const bt_frm_dlg_cancel_down = globalThis.BaseTextureCache[`prguse/${img_id+1}`]
+            this.sp_frm_dlg_ok.x = this.sp_frm_dlg_bg.x + mb_left
+            this.sp_frm_dlg_ok.y = this.sp_frm_dlg_bg.y + mb_top
+            this.dom_frm_dlg_ok.style.left = `${mb_left}px`
+            this.dom_frm_dlg_ok.style.top = `${mb_top}px`
+            this.dom_frm_dlg_ok.style.width = `${bt_frm_dlg_cancel_down.width}px`
+            this.dom_frm_dlg_ok.style.height = `${bt_frm_dlg_cancel_down.height}px`
+            this.frm_dlg_pixi_parent.addChild(this.sp_frm_dlg_ok)
+            this.dom_frm_dlg_ok.style.visibility = "visible"
+            this.dom_frm_dlg_ok.onmousedown = (event) => {
+                if (!!!this.sp_frm_dlg_ok_down) {
+                    this.sp_frm_dlg_ok_down = new PIXI.Sprite(new PIXI.Texture(bt_frm_dlg_cancel_down))
+                    this.sp_frm_dlg_ok_down.x = this.sp_frm_dlg_ok.x
+                    this.sp_frm_dlg_ok_down.y = this.sp_frm_dlg_ok.y
+                }
+                this.frm_dlg_pixi_parent.addChild(this.sp_frm_dlg_ok_down)
+            }
+            this.dom_frm_dlg_ok.onmouseleave = (event) => {
+                this.frm_dlg_pixi_parent.removeChild(this.sp_frm_dlg_ok_down)
+            }
+            this.dom_frm_dlg_ok.onmouseup = (event) => {
+                this.frm_dlg_pixi_parent.removeChild(this.sp_frm_dlg_ok_down)
+                this.sp_frm_dlg_ok_down = null
+                this._close_dlg()
+                if (!!callback) {
+                    callback(btns.includes(SDK.DlgButtons.mbOk) ? SDK.DlgButtons.mbOk : SDK.DlgButtons.mbYes)
+                }
+            }
+        }
+    }
+
+    dlg_notice(text) {
+
+    }
+
+    dlg_input(text, callback) {
+
     }
 
     update() {
+        do {
+            if (this.need_loading.length < 1) break
+            let load_done = true
+            for (const [key, value] of this.need_loading) {
+                const tex = globalThis.BaseTextureCache[`${key}/${value}`]
+                if (!tex) {
+                    Images.load(key, value)
+                    load_done = false
+                    break
+                }
+            }
+            if (!load_done) break
+            this.need_loading = new Array
+        } while (false)
         if(this.scene == 0) {
             this.login_scene.update()
         } else if (this.scene == 1) {

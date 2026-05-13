@@ -1,9 +1,10 @@
 import { Images } from "../image/Images.mjs"
 import * as PIXI from "../pixi.mjs"
+import * as SDK from "../SDK.mjs"
 
 class NewAccountScene {
     constructor(params, manager) {
-        this.pixi_parent = params.pixi_container // 生成的贴图元素需要停靠的父级树节点
+        this.pixi_parent = params.ui_layer // 生成的贴图元素需要停靠的父级树节点
         this.manager = manager // 场景管理对象
         this.view_width = params.width // 视区宽度
         this.view_height = params.height // 视区高度
@@ -247,7 +248,30 @@ class NewAccountScene {
     }
 
     on_create_user_response(resp) {
-        alert(resp.ident);
+        if (resp.ident == SDK.Messages.SM_NEWID_SUCCESS) {
+            this.manager.dlg_message("您的帐号创建成功。\\" +
+            "请妥善保管您的帐号和密码，\\并且不要因任何原因把帐号和密码告诉任何其他人。\\" +
+            "如果忘记了密码,\\你可以通过我们的主页重新找回。", [SDK.DlgButtons.mbOk], (btn) => {
+                this.manager.change_scene(0)
+            })
+        } else if (resp.ident == SDK.Messages.SM_NEWID_FAIL) {
+            if (resp.recog == 0) {
+                this.manager.dlg_message("这个帐号正在被其他的玩家使用了。\\" +
+                "请使用一个不同的名字。", [SDK.DlgButtons.mbOk], (btn) => {
+                    document.getElementById("new_account_id").focus()
+                })
+            } else if (resp.recog == -2) {
+                this.manager.dlg_message("在本服务器下, 这个新名字禁止使用。\\" +
+                "请联系我们。", [SDK.DlgButtons.mbOk], (btn) => {
+                    document.getElementById("new_account_id").focus()
+                })
+            } else {
+                this.manager.dlg_message("建立ID失败，请确认它没有包含空格,\\" +
+                "特殊字符，或难以辨认的字符。", [SDK.DlgButtons.mbOk], (btn) => {
+                    document.getElementById("new_account_id").focus()
+                })
+            }
+        }
     }
 }
 

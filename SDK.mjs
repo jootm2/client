@@ -1301,9 +1301,21 @@ function colorCountToBitCount(colorCount) {
 // 客户端服务端消息定义
 const Messages = Object.freeze({
     CM_ADDNEWUSER: 2002,
-    
+
     SM_NEWID_SUCCESS: 504,
     SM_NEWID_FAIL: 505,
 });
 
-export { Palletes, widthBytes, skipBytes, colorCountToBitCount, Messages };
+// 对话框按钮
+const DlgButtons = Object.freeze({
+    mbOk: 1,
+    mbCancel: 2,
+    mbYes: 3,
+    mbNo: 4
+});
+
+function transtring(text) {
+    return text.replace(/\\/g, "<br>")
+}
+
+export { Palletes, widthBytes, skipBytes, colorCountToBitCount, Messages, DlgButtons, transtring };
