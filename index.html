@@ -12,9 +12,6 @@
             left: 0px;
             top: 0px;
         }
-        #game_control, #ui_control {
-            visibility: hidden;
-        }
         #login_window {
             position: absolute;
             left: 0px;
@@ -122,12 +119,8 @@
         const game_height = 600
         const game_canvas = document.getElementById("game_canvas")
         const game_control = document.getElementById("game_control")
-        game_control.style.width = `${game_width}px`
-        game_control.style.height = `${game_height}px`
         const ui_canvas = document.getElementById("ui_canvas")
         const ui_control = document.getElementById("ui_control")
-        ui_control.style.width = `${game_width}px`
-        ui_control.style.height = `${game_height}px`
         const dlg_canvas = document.getElementById("frm_dlg_canvas")
 
         await JootM2.init("http://localhost:55842/resources.json")
