@@ -14,20 +14,13 @@
         }
         #login_window {
             position: absolute;
-            left: 0px;
-            top: 0px;
             visibility: hidden;
         }
-        #login_id {
-            width: 140px;
-        }
-        #login_psw {
+        #login_id, #login_psw {
             width: 140px;
         }
         #new_account_window {
             position: absolute;
-            left: 0px;
-            top: 0px;
             visibility: hidden;
         }
         #new_account_help {
@@ -35,6 +28,13 @@
             width: 200px;
             height: 260px;
             resize: none;
+        }
+        #chgpwd_window {
+            position: absolute;
+            visibility: hidden;
+        }
+        #chgpwd_id, #chgpwd_cur_pw, #chgpwd_new_pw, #chgpwd_repeat_pw {
+            width: 140px;
         }
         #frm_dlg {
             position: absolute;
@@ -90,6 +90,15 @@
             <input id="new_account_mobphone" class="normal_input" maxlength="13" />
             <input id="new_account_email" class="normal_input" maxlength="40" />
             <textarea id="new_account_help" class="normal_input" readonly></textarea>
+        </div>
+        <!-- 修改密码窗体 -->
+        <div id="chgpwd_window">
+            <input id="chgpwd_id" class="normal_input" maxlength="10"/>
+            <input id="chgpwd_cur_pw" class="normal_input" type="password" maxlength="10"/>
+            <input id="chgpwd_new_pw" class="normal_input" type="password" maxlength="10"/>
+            <input id="chgpwd_repeat_pw" class="normal_input" type="password" maxlength="10"/>
+            <button id="chgpwd_ok" class="normal_button">ok</button>
+            <button id="chgpwd_cancel" class="normal_button">x</button>
         </div>
 
         <!-- 游戏内窗体绘制（背包、人物属性、技能、交易、行会） -->

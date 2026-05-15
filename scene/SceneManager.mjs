@@ -5,12 +5,14 @@ import { EDcode } from "../EDcode.mjs"
 import * as SDK from "../SDK.mjs"
 import { Images } from "../image/Images.mjs"
 import * as PIXI from "../pixi.mjs"
+import { ChgpwdScene } from "./ChgpwdScene.mjs"
 
 class SceneManager {
     constructor(params) {
         this.login_scene = new LoginScene(params, this)
         this.new_account_scene = new NewAccountScene(params, this)
-        this.scene = 0 // 0:登录 1:新用户 2:修改密码 3:选择角色 4:公告 5:游戏
+        this.chg_pwd_scene = new ChgpwdScene(params, this)
+        this.scene = 0 // 0:登录 1:新用户 2:修改密码 3:选择角色（含健康公告） 4:游戏
         this.ws = new WebSocket(params.server_base_url + "/7000")
         this.ws.onmessage = (event) => {
             this._on_ws_message(event)
@@ -188,6 +190,8 @@ class SceneManager {
             this.login_scene.update()
         } else if (this.scene == 1) {
             this.new_account_scene.update()
+        } else if (this.scene == 2) {
+            this.chg_pwd_scene.update()
         }
     }
 
@@ -196,6 +200,8 @@ class SceneManager {
             this.login_scene.leave_scene()
         } else if (this.scene == 1) {
             this.new_account_scene.leave_scene()
+        } else if (this.scene == 2) {
+            this.chg_pwd_scene.leave_scene()
         }
 
         this.scene = scene_type
@@ -204,6 +210,8 @@ class SceneManager {
             this.login_scene.enter_scene()
         } else if (this.scene == 1) {
             this.new_account_scene.enter_scene()
+        } else if (this.scene == 2) {
+            this.chg_pwd_scene.enter_scene()
         }
     }
 
@@ -220,6 +228,11 @@ class SceneManager {
             case SDK.Messages.SM_PASSWD_FAIL:
             case SDK.Messages.SM_PASSOK_SELECTSERVER: {
                 this.login_scene.on_login_response(head)
+                break;
+            }
+            case SDK.Messages.SM_CHGPASSWD_SUCCESS:
+            case SDK.Messages.SM_CHGPASSWD_FAIL: {
+                this.chg_pwd_scene.on_chgpwd_response(head)
                 break;
             }
             case SDK.Messages.SM_SELECTSERVER_OK: {
@@ -307,6 +320,11 @@ class SceneManager {
     send_select_server() {
         const msg = this.edcode.make_default_msg(SDK.Messages.CM_SELECTSERVER) 
             + this.edcode.encode_string(this.server_name)
+        this._send_socket(msg)
+    }
+    send_change_pwd(id, cur_psw, new_psw) {
+        const msg = this.edcode.make_default_msg(SDK.Messages.CM_CHANGEPASSWORD)
+            + this.edcode.encode_string(`${id}\t${cur_psw}\t${new_psw}`)
         this._send_socket(msg)
     }
     // end 与服务器交互函数
