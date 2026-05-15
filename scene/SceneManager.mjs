@@ -13,7 +13,7 @@ class SceneManager {
         this.scene = 0 // 0:登录 1:新用户 2:修改密码 3:选择角色 4:公告 5:游戏
         this.ws = new WebSocket(params.server_base_url + "/7000")
         this.ws.onmessage = (event) => {
-            this.on_ws_message(event)
+            this._on_ws_message(event)
         }
         this.send_idx = 1
         this.edcode = new EDcode(10000)
@@ -22,6 +22,7 @@ class SceneManager {
         this.need_loading = new Array // 需要加载的图片
         this.view_width = params.width // 视区宽度
         this.view_height = params.height // 视区高度
+        this.server_name = params.server_name
         // begine 对话框相关
         this.frm_dlg_pixi_parent = params.dlg_layer
         this.dom_frm_dlg = document.getElementById("frm_dlg")
@@ -50,6 +51,7 @@ class SceneManager {
         // end 对话框相关
     }
 
+    // begin 对话框
     _close_dlg() {
         this.frm_dlg_pixi_parent.removeChildren()
         this.dom_frm_dlg.style.visibility = "hidden"
@@ -165,6 +167,7 @@ class SceneManager {
     dlg_input(text, callback) {
 
     }
+    // end 对话框
 
     update() {
         do {
@@ -204,7 +207,7 @@ class SceneManager {
         }
     }
 
-    on_ws_message(event) {
+    _on_ws_message(event) {
         const data = event.data.slice(1, -1)
         const head = this.edcode.decode_message(data)
         switch (head.ident) {
@@ -214,10 +217,19 @@ class SceneManager {
                 this.new_account_scene.on_create_user_response(head)
                 break
             }
+            case SDK.Messages.SM_PASSWD_FAIL:
+            case SDK.Messages.SM_PASSOK_SELECTSERVER: {
+                this.login_scene.on_login_response(head)
+                break;
+            }
+            case SDK.Messages.SM_SELECTSERVER_OK: {
+                alert("select server ok")
+                break;
+            }
         }
     }
 
-    send_socket(msg_str) {
+    _send_socket(msg_str) {
         this.ws.send("#" + this.send_idx + msg_str + "!")
         this.send_idx++
 		if (this.send_idx >= 10)
@@ -226,6 +238,7 @@ class SceneManager {
 		}
     }
 
+    // begin 与服务器交互函数
     send_new_account(user_entry_info, user_entry_add_info) {
         const ue_buf = new ArrayBuffer(148)
         const ue = new Uint8Array(ue_buf)
@@ -284,8 +297,19 @@ class SceneManager {
         const msg = this.edcode.make_default_msg(SDK.Messages.CM_ADDNEWUSER) + 
             this.edcode.encode_buffer(ue) + 
             this.edcode.encode_buffer(ua)
-        this.send_socket(msg)
+        this._send_socket(msg)
     }
+    send_login(id, psw) {
+        const msg = this.edcode.make_default_msg(SDK.Messages.CM_IDPASSWORD, SDK.ClientVersion) +
+            this.edcode.encode_string(id + "/" + psw)
+        this._send_socket(msg)
+    }
+    send_select_server() {
+        const msg = this.edcode.make_default_msg(SDK.Messages.CM_SELECTSERVER) 
+            + this.edcode.encode_string(this.server_name)
+        this._send_socket(msg)
+    }
+    // end 与服务器交互函数
 }
 
 export { SceneManager }

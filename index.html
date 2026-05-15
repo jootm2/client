@@ -117,13 +117,17 @@
 
         const game_width = 800
         const game_height = 600
+        const resource_json_url = "http://localhost:55842/resources.json"
+        const server_base_url = "ws://127.0.0.1:7000"
+        const server_name = "雷霆"
+
         const game_canvas = document.getElementById("game_canvas")
         const game_control = document.getElementById("game_control")
         const ui_canvas = document.getElementById("ui_canvas")
         const ui_control = document.getElementById("ui_control")
         const dlg_canvas = document.getElementById("frm_dlg_canvas")
 
-        await JootM2.init("http://localhost:55842/resources.json")
+        await JootM2.init(resource_json_url)
         // 绘制地图、人物、怪物、NPC、掉落物品、技能特效等
         const game_app = new PIXI.Application({ background: '#000', width: game_width, height: game_height, view: game_canvas })
         const game_container = new PIXI.Container
@@ -142,15 +146,10 @@
             , game_layer: game_container
             , width: game_width
             , height: game_height
-            , server_base_url: "ws://127.0.0.1:7000"})
+            , server_base_url: server_base_url
+            , server_name: server_name})
         scene_manager.change_scene(0)
 
-        /*game_app.ticker.start()
-        ui_app.ticker.start()
-        dlg_app.ticker.start()
-       game_app.ticker.add((delta) => {
-            scene_manager.update()
-       })*/
         const ticker = PIXI.Ticker.shared
         ticker.autoStart = true
         ticker.add((delta) => {

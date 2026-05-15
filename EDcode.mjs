@@ -123,11 +123,11 @@ class EDcode {
         }
         const buffer = new ArrayBuffer(12);
 		const dataView = new DataView(buffer);
-		dataView.setUint32(0, recog, true); // 第三个参数 true = 小端序
-		dataView.setUint16(4, ident, true);  // 偏移4：占 4~5 字节
-		dataView.setUint16(6, wparam, true);  // 偏移6：占 6~7 字节
-		dataView.setUint16(8, atag, true);  // 偏移8：占 8~9 字节
-		dataView.setUint16(10, nseries, true); // 偏移10：占 10~11 字节
+		dataView.setInt32(0, recog, true); // 第三个参数 true = 小端序
+		dataView.setInt16(4, ident, true);  // 偏移4：占 4~5 字节
+		dataView.setInt16(6, wparam, true);  // 偏移6：占 6~7 字节
+		dataView.setInt16(8, atag, true);  // 偏移8：占 8~9 字节
+		dataView.setInt16(10, nseries, true); // 偏移10：占 10~11 字节
 
 		return this.encode6BitBuf(new Uint8Array(buffer));
     }
@@ -136,11 +136,11 @@ class EDcode {
         const buf = this.decode_string(msg_str.substring(0, 16));
         const data_view = new DataView(buf.buffer);
         return {
-            recog: data_view.getUint32(0, true),
-            ident: data_view.getUint16(4, true),
-            wparam: data_view.getUint16(6, true),
-            atag: data_view.getUint16(8, true),
-            nseries: data_view.getUint16(10, true),
+            recog: data_view.getInt32(0, true),
+            ident: data_view.getInt16(4, true),
+            wparam: data_view.getInt16(6, true),
+            atag: data_view.getInt16(8, true),
+            nseries: data_view.getInt16(10, true),
         };
     }
 }

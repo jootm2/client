@@ -1300,10 +1300,15 @@ function colorCountToBitCount(colorCount) {
 
 // 客户端服务端消息定义
 const Messages = Object.freeze({
+    CM_IDPASSWORD: 2001,
     CM_ADDNEWUSER: 2002,
+    CM_SELECTSERVER: 104,
 
+    SM_PASSWD_FAIL: 503,
     SM_NEWID_SUCCESS: 504,
     SM_NEWID_FAIL: 505,
+    SM_PASSOK_SELECTSERVER: 529,
+    SM_SELECTSERVER_OK: 530,
 });
 
 // 对话框按钮
@@ -1318,4 +1323,20 @@ function transtring(text) {
     return text.replace(/\\/g, "<br>")
 }
 
-export { Palletes, widthBytes, skipBytes, colorCountToBitCount, Messages, DlgButtons, transtring };
+const ClientVersion = 20030422 // 2003*10000+4*100+22;2003年4月22日
+
+// 取低16位 = Loword
+function Loword(n) {
+  // 先转32位有符号整数，再抹高16位
+  return (n | 0) & 0xFFFF;
+}
+
+// 取高16位 = Hiword
+function Hiword(n) {
+  // 右移16位，再抹多余位
+  return ((n | 0) >> 16) & 0xFFFF;
+}
+
+export { Palletes, widthBytes, skipBytes, colorCountToBitCount
+    , Messages, DlgButtons, transtring, ClientVersion
+    , Loword, Hiword };

@@ -174,6 +174,62 @@ class LoginScene {
 
     // 提交
     ok_click() {
+        this.manager.send_login(document.getElementById("login_id").value
+            , document.getElementById("login_psw").value)
+    }
+
+    on_login_response(resp) {
+        if (resp.ident == SDK.Messages.SM_PASSWD_FAIL) {
+            switch (resp.recog) {
+                case -1: {
+                    this.manager.dlg_message("密码错误.")
+                    break;
+                }
+                case -2: {
+                    this.manager.dlg_message("连续三次密码错误。\\你将在一段时间内无法再次连接。")
+                    break;
+                }
+                case -3: {
+                    this.manager.dlg_message("这个帐号正在使用，或者是被异常的终止锁定了,\\请稍后重试。")
+                    break;
+                }
+                case -4: {
+                    this.manager.dlg_message("这个帐户不能正确访问。\\请改变帐户,\\或者与我们联系。")
+                    break;
+                }
+                case -5: {
+                    this.manager.dlg_message("这个帐户被禁止了.")
+                    break;
+                }
+                default:
+                    this.manager.dlg_message("ID不存在或未知错误.")
+                    break;
+            }
+        } else if (resp.ident == SDK.Messages.SM_PASSOK_SELECTSERVER) {
+            let tip = null
+
+            const availIDDay = SDK.Loword(resp.recog)
+            const availIDHour = SDK.Hiword(resp.recog)
+            const availIPDay = resp.wparam
+            const availIPHour = resp.atag
+            if (availIDDay > 0) {
+                tip = "你的个人帐户的期限:" + availIDDay + "剩余天数."
+            } else if (availIPDay > 0) {
+                tip = "当前IP的周期  " + availIPDay + "剩余天数."
+            } else  if (availIDHour > 0) {
+                tip = "个人帐户的期限:" + availIDHour + "剩余小时."
+            } else if (availIPHour > 0) {
+                tip = "IP的周期 " + availIPHour + "剩余小时."
+            }
+            if (!!tip) {
+                this.manager.dlg_message(tip, [SDK.DlgButtons.mbOk]
+                    , (mb) => {
+                    this.manager.send_select_server()
+                })
+            } else {
+                this.manager.send_select_server()
+            }
+        }
     }
 }
 
