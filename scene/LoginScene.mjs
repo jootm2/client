@@ -206,7 +206,7 @@ class LoginScene {
         this.sp_open_door_bg.y = (this.view_height - this.sp_open_door_bg.height) / 2
         this.pixi_parent.addChild(this.sp_open_door_bg)
         {
-            const textures = [];
+            const textures = []
             // 10张图
             for(let i = 24; i <= 32; ++i) {
                 textures.push({texture: new PIXI.Texture(globalThis.BaseTextureCache[`chrsel/${i}`])
