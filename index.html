@@ -159,9 +159,7 @@
             , server_name: server_name})
         scene_manager.change_scene(0)
 
-        const ticker = PIXI.Ticker.shared
-        ticker.autoStart = true
-        ticker.add((delta) => {
+        PIXI.Ticker.shared.add((delta) => {
             scene_manager.update()
         })
     </script>

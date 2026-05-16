@@ -15,12 +15,24 @@ class LoginScene {
         this.need_loading.push(["prguse", 61]) // 登录：新用户按钮
         this.need_loading.push(["prguse", 62]) // 登录：确定按钮
         this.need_loading.push(["prguse", 64]) // 登录：关闭按钮
+        this.need_loading.push(["chrsel", 22]) // 开门背景
+        this.need_loading.push(["chrsel", 24]) // 开门动作
+        this.need_loading.push(["chrsel", 25]) // 开门动作
+        this.need_loading.push(["chrsel", 26]) // 开门动作
+        this.need_loading.push(["chrsel", 27]) // 开门动作
+        this.need_loading.push(["chrsel", 28]) // 开门动作
+        this.need_loading.push(["chrsel", 29]) // 开门动作
+        this.need_loading.push(["chrsel", 30]) // 开门动作
+        this.need_loading.push(["chrsel", 31]) // 开门动作
+        this.need_loading.push(["chrsel", 32]) // 开门动作
         this.sp_login_bg = null // 背景图片精灵对象
         this.sp_login_close = null // 关闭按钮贴图精灵对象（按下）
         this.sp_new_account = null // 新用户按钮贴图精灵对象（按下）
         this.sp_chpsw = null // 修改密码按钮贴图精灵对象（按下）
         this.sp_login_ok = null // 提交按钮贴图精灵对象（按下）
         this.first_update = false // 是否初次从其他场景切换过来
+        this.sp_open_door_bg = null // 开门背景
+        this.sp_open_door = null // 开门动作
     }
 
     update() {
@@ -154,7 +166,12 @@ class LoginScene {
     leave_scene() {
         document.getElementById("login_window").style.visibility = "hidden"
         this.login_id = document.getElementById("login_id").value
-        this.pixi_parent.removeChild(this.sp_login_bg)
+        if (!!this.sp_login_bg)
+            this.pixi_parent.removeChild(this.sp_login_bg)
+        if (!!this.sp_open_door_bg) {
+            this.pixi_parent.removeChild(this.sp_open_door_bg)
+            this.pixi_parent.removeChild(this.sp_open_door)
+        }
     }
 
     // 用户点击关闭按钮
@@ -176,6 +193,38 @@ class LoginScene {
     ok_click() {
         this.manager.send_login(document.getElementById("login_id").value
             , document.getElementById("login_psw").value)
+    }
+
+    // 开门
+    open_door() {
+        document.getElementById("login_window").style.visibility = "hidden"
+        this.pixi_parent.removeChild(this.sp_login_bg)
+        this.sp_login_bg = null
+        
+        this.sp_open_door_bg = new PIXI.Sprite(new PIXI.Texture(globalThis.BaseTextureCache['chrsel/22']))
+        this.sp_open_door_bg.x = (this.view_width - this.sp_open_door_bg.width) / 2
+        this.sp_open_door_bg.y = (this.view_height - this.sp_open_door_bg.height) / 2
+        this.pixi_parent.addChild(this.sp_open_door_bg)
+        {
+            const textures = [];
+            // 10张图
+            for(let i = 24; i <= 32; ++i) {
+                textures.push({texture: new PIXI.Texture(globalThis.BaseTextureCache[`chrsel/${i}`])
+                    , time: (i - 24) * PIXI.Ticker.shared.deltaMS})
+            }
+            this.sp_open_door = new PIXI.AnimatedSprite(textures)
+            this.sp_open_door.loop = false
+            this.sp_open_door.x = (this.view_width - this.sp_open_door.textures[0].width) / 2
+            this.sp_open_door.y = (this.view_height - this.sp_open_door.textures[0].height) / 2
+            this.pixi_parent.addChild(this.sp_open_door)
+        }
+        this.sp_open_door.onComplete = () => {
+            // 开门动作完毕之后进入角色选择界面
+            this.manager.change_scene(3)
+        }
+        setTimeout(() => {
+            this.sp_open_door.play()
+        }, PIXI.Ticker.shared.deltaMS)
     }
 
     on_login_response(resp) {

@@ -33,7 +33,7 @@ class NewAccountScene {
             this.need_loading = new Array
 
             // 背景图
-            this.sp_new_account_bg= new PIXI.Sprite(new PIXI.Texture(globalThis.BaseTextureCache['prguse/63']))
+            this.sp_new_account_bg = new PIXI.Sprite(new PIXI.Texture(globalThis.BaseTextureCache['prguse/63']))
             this.sp_new_account_bg.x = (this.view_width - this.sp_new_account_bg.width) / 2
             this.sp_new_account_bg.y = (this.view_height - this.sp_new_account_bg.height) / 2
             // 关闭按钮
