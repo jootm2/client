@@ -8,12 +8,23 @@ import * as PIXI from "../pixi.mjs"
 import { ChgpwdScene } from "./ChgpwdScene.mjs"
 
 class SceneManager {
-    constructor(params) {
-        this.login_scene = new LoginScene(params, this)
-        this.new_account_scene = new NewAccountScene(params, this)
-        this.chg_pwd_scene = new ChgpwdScene(params, this)
+    constructor(options) {
+        // 绘制地图、人物、怪物、NPC、掉落物品、技能特效等
+        this.game_app = new PIXI.Application({ background: '#000', width: options.width
+            , height: options.height, view: document.getElementById("game_canvas") })
+        // 绘制模态对话框（公告、确定取消、输入框）等
+        this.dlg_app = new PIXI.Application({ backgroundAlpha: 0, width: options.width
+            , height: options.height, view: document.getElementById("frm_dlg_canvas") })
+        const scene_optios = {
+            stage: this.game_app.stage
+            , width: options.width
+            , height: options.height
+        }
+        this.login_scene = new LoginScene(scene_optios, this)
+        this.new_account_scene = new NewAccountScene(scene_optios, this)
+        this.chg_pwd_scene = new ChgpwdScene(scene_optios, this)
         this.scene = 0 // 0:登录 1:新用户 2:修改密码 3:选择角色（含健康公告） 4:游戏
-        this.server_base_url = params.server_base_url
+        this.server_base_url = options.server_base_url
         this.ws = new WebSocket(this.server_base_url + "/7000")
         this.ws.onmessage = (event) => {
             this._on_ws_message(event)
@@ -22,18 +33,15 @@ class SceneManager {
         this.edcode = new EDcode(10000)
         this.gb2312_encoder = new GB2312Encoder
         this.utf8_encoder = new TextEncoder
-        this.need_loading = new Array // 需要加载的图片
-        this.view_width = params.width // 视区宽度
-        this.view_height = params.height // 视区高度
-        this.server_name = params.server_name
+        this.view_width = options.width // 视区宽度
+        this.view_height = options.height // 视区高度
+        this.server_name = options.server_name
         this.login_id = null
         this.certification = null
         // begine 对话框相关
-        this.frm_dlg_pixi_parent = params.dlg_layer
+        this.need_loading = new Array // 需要加载的图片
+        this.frm_dlg_pixi_parent = this.dlg_app.stage
         this.dom_frm_dlg = document.getElementById("frm_dlg")
-        this.dom_frm_dlg_shadow = document.getElementById("frm_dlg_shadow")
-        this.dom_frm_dlg_shadow.style.width = `${params.width}px`
-        this.dom_frm_dlg_shadow.style.height = `${params.height}px`
         this.dom_frm_dlg_window = document.getElementById("frm_dlg_window")
         this.dom_frm_dlg_label = document.getElementById("frm_dlg_label")
         this.dom_frm_dlg_input = document.getElementById("frm_dlg_input")

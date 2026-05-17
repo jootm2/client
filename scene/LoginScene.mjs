@@ -3,11 +3,11 @@ import * as PIXI from "../pixi.mjs"
 import * as SDK from "../SDK.mjs"
 
 class LoginScene {
-    constructor(params, manager) {
-        this.pixi_parent = params.game_layer // 生成的贴图元素需要停靠的父级树节点
+    constructor(options, manager) {
+        this.pixi_parent = options.stage // 生成的贴图元素需要停靠的父级树节点
         this.manager = manager // 场景管理对象
-        this.view_width = params.width // 视区宽度
-        this.view_height = params.height // 视区高度
+        this.view_width = options.width // 视区宽度
+        this.view_height = options.height // 视区高度
         this.login_id = "" // 账号（用作缓存）
         this.need_loading = new Array // 需要加载的图片
         this.need_loading.push(["prguse", 53]) // 登陆界面：修改密码按钮

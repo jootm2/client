@@ -7,7 +7,7 @@
         #game_area {
             position: relative;
         }
-        #game_area :is(div,canvas,p,label,input,button,textarea) {
+        #game_area * {
             position: absolute;
         }
         #game_area > div {
@@ -28,8 +28,7 @@
     <link rel="stylesheet" href="common.css" />
 </head>
 
-<body><!-- dom节点的层级稍微乱一些，但其实没关系，主要是要的绝对定位，以及上下关系
-    即position 和 z-index -->
+<body>
     <div id="game_area">
         <!-- 游戏地图、精灵、特效绘制canvas -->
         <canvas id="game_canvas">Loading...</canvas>
@@ -78,14 +77,8 @@
             <button id="chrsel_start">start</button>
         </div>
 
-        <!-- 游戏内窗体绘制（背包、人物属性、技能、交易、行会） -->
-        <canvas id="ui_canvas">Loading...</canvas>
-        <!-- 控件对应dom树节点包裹 -->
-        <div id="ui_control"></div>
-
         <!-- 消息对话框、输入框（公告、退出确认、商铺购买个数） -->
         <div id="frm_dlg">
-            <div id="frm_dlg_shadow"></div>
             <canvas id="frm_dlg_canvas">Loading...</canvas>
             <div id="frm_dlg_window">
                 <p id="frm_dlg_label">x</p>
@@ -108,30 +101,10 @@
         const server_name = "雷霆"
         const server_titile = "测试区" // 用于用户展示，server_name为服务器真实名称
 
-        const game_canvas = document.getElementById("game_canvas")
-        const game_control = document.getElementById("game_control")
-        const ui_canvas = document.getElementById("ui_canvas")
-        const ui_control = document.getElementById("ui_control")
-        const dlg_canvas = document.getElementById("frm_dlg_canvas")
-
         await JootM2.init(resource_json_url)
-        // 绘制地图、人物、怪物、NPC、掉落物品、技能特效等
-        const game_app = new PIXI.Application({ background: '#000', width: game_width, height: game_height, view: game_canvas })
-        const game_container = new PIXI.Container
-        game_app.stage.addChild(game_container)
-        // 绘制背包、属性、技能等
-        const ui_app = new PIXI.Application({ backgroundAlpha: 0, width: game_width, height: game_height, view: ui_canvas, autoStart: false })
-        const ui_container = new PIXI.Container
-        ui_app.stage.addChild(ui_container)
-        // 绘制模态对话框（公告、确定取消、输入框）等
-        const dlg_app = new PIXI.Application({ backgroundAlpha: 0, width: game_width, height: game_height, view: dlg_canvas })
-        const dlg_container = new PIXI.Container
-        dlg_app.stage.addChild(dlg_container)
 
-        const scene_manager = new SceneManager({dlg_layer: dlg_container
-            , ui_layer: ui_container
-            , game_layer: game_container
-            , width: game_width
+        const scene_manager = new SceneManager({
+            width: game_width
             , height: game_height
             , server_base_url: server_base_url
             , server_name: server_name
@@ -148,9 +121,10 @@
         // 获取所有input元素
         const allInputs = document.querySelectorAll('input')
         allInputs.forEach(input => {
-          input.autocomplete = 'off'
+          input.autocomplete = "off"
           input.autocorrect = "off"
           input.autocapitalize = "off"
+          input.spellcheck = false
         });
     });
   </script>

@@ -11,6 +11,18 @@ input {
     box-shadow: none;
     width: 120px;
 }
+/* 去除密码框后面小眼睛 */
+input[type=password]::-ms-reveal,
+input[type=password]::-webkit-reveal-button
+{
+    display: none;
+}
+/* 去除文本框后面清除按钮（x） */
+input[type=text]::-webkit-clear-button,
+input[type=text]::-ms-clear
+{
+    display: none;
+}
 textarea {
     background: transparent;
     border: none;
@@ -21,4 +33,11 @@ textarea {
 }
 button {
     opacity: 0;
+}
+label, p {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    cursor: default;
 }
