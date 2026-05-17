@@ -30,7 +30,7 @@ class ChgpwdScene {
             this.need_loading = new Array
 
             // 展示背景图
-            this.sp_chgpwd_bg= new PIXI.Sprite(new PIXI.Texture(globalThis.BaseTextureCache['prguse/50']))
+            this.sp_chgpwd_bg = new PIXI.Sprite(new PIXI.Texture(globalThis.BaseTextureCache['prguse/50']))
             this.sp_chgpwd_bg.x = (this.view_width - this.sp_chgpwd_bg.width) / 2
             this.sp_chgpwd_bg.y = (this.view_height - this.sp_chgpwd_bg.height) / 2
             // 同意按钮

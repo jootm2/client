@@ -6,6 +6,7 @@ import * as SDK from "../SDK.mjs"
 import { Images } from "../image/Images.mjs"
 import * as PIXI from "../pixi.mjs"
 import { ChgpwdScene } from "./ChgpwdScene.mjs"
+import { ChrselScene } from "./ChrselScene.mjs"
 
 class SceneManager {
     constructor(options) {
@@ -23,21 +24,22 @@ class SceneManager {
         this.login_scene = new LoginScene(scene_optios, this)
         this.new_account_scene = new NewAccountScene(scene_optios, this)
         this.chg_pwd_scene = new ChgpwdScene(scene_optios, this)
+        scene_optios.server_title = options.server_titile
+        this.chrsel_scene = new ChrselScene(scene_optios, this)
         this.scene = 0 // 0:登录 1:新用户 2:修改密码 3:选择角色（含健康公告） 4:游戏
         this.server_base_url = options.server_base_url
-        this.ws = new WebSocket(this.server_base_url + "/7000")
-        this.ws.onmessage = (event) => {
-            this._on_ws_message(event)
-        }
+        this.ws = null
         this.send_idx = 1
         this.edcode = new EDcode(10000)
         this.gb2312_encoder = new GB2312Encoder
+        this.gb2312_decoder = new TextDecoder("gbk")
         this.utf8_encoder = new TextEncoder
         this.view_width = options.width // 视区宽度
         this.view_height = options.height // 视区高度
         this.server_name = options.server_name
         this.login_id = null
         this.certification = null
+        this.runport = 0
         // begine 对话框相关
         this.need_loading = new Array // 需要加载的图片
         this.frm_dlg_pixi_parent = this.dlg_app.stage
@@ -203,6 +205,8 @@ class SceneManager {
             this.new_account_scene.update()
         } else if (this.scene == 2) {
             this.chg_pwd_scene.update()
+        } else if (this.scene == 3) {
+            this.chrsel_scene.update()
         }
     }
 
@@ -213,6 +217,10 @@ class SceneManager {
             this.new_account_scene.leave_scene()
         } else if (this.scene == 2) {
             this.chg_pwd_scene.leave_scene()
+        } else if (this.scene == 3) {
+            this.chrsel_scene.leave_scene()
+            this.ws.close()
+            this.ws = null
         }
 
         this.scene = scene_type
@@ -223,13 +231,44 @@ class SceneManager {
             this.new_account_scene.enter_scene()
         } else if (this.scene == 2) {
             this.chg_pwd_scene.enter_scene()
+        } else if (this.scene == 3) {
+            this.chrsel_scene.enter_scene()
+        }
+
+        if (!!!this.ws) {
+            switch (this.scene) {
+                case 0:
+                case 1:
+                case 2: {
+                    this.ws = new WebSocket(this.server_base_url + "/7000")
+                    this.ws.onmessage = (event) => {
+                        this._on_ws_message(event)
+                    }
+                    break;
+                }
+                case 3: {
+                    this.ws = new WebSocket(this.server_base_url + `/${this.runport}`)
+                    this.ws.onmessage = (event) => {
+                        this._on_ws_message(event)
+                    }
+                    this.ws.onopen = (event) => {
+                        this.send_query_chr()
+                    }
+                    break;
+                }
+                case 4: {
+                    break;
+                }
+                default:
+                    break;
+            }
         }
     }
 
     _on_ws_message(event) {
         const data = event.data.slice(1, -1)
         const head = this.edcode.decode_message(data)
-        const body = data.substring(17)
+        const body = data.substring(16)
         switch (head.ident) {
             case SDK.Messages.SM_NEWID_SUCCESS:
             case SDK.Messages.SM_NEWID_FAIL:
@@ -249,23 +288,15 @@ class SceneManager {
             }
             case SDK.Messages.SM_SELECTSERVER_OK: {
                 this.ws.close()
+                this.ws = null
+                const str = this.gb2312_decoder.decode(this.edcode.decode_string(body)).split('/')
+                this.certification = str[2]
+                this.runport = str[1]
                 this.login_scene.open_door()
                 break;
             }
             case SDK.Messages.SM_QUERYCHR: {
-                const str = this.edcode.decode_string(body)
-                /*
-                setTimeout(() => {
-                    const str = this.edcode.decode_string(body)
-                    this.ws = new WebSocket(this.server_base_url + `/${str[1]}`)
-                    this.certification = str[2]
-                    this.ws.onmessage = (event) => {
-                        this._on_ws_message(event)
-                    }
-                    this.ws.onopen = (event) => {
-                        this.send_query_chr()
-                    }
-                }, 500);*/
+                this.chrsel_scene.on_query_chr_response(head, body)
                 break;
             }
         }

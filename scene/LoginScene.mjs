@@ -47,7 +47,7 @@ class LoginScene {
             this.need_loading = new Array
 
             // 展示背景图
-            this.sp_login_bg= new PIXI.Sprite(new PIXI.Texture(globalThis.BaseTextureCache['prguse/60']))
+            this.sp_login_bg = new PIXI.Sprite(new PIXI.Texture(globalThis.BaseTextureCache['prguse/60']))
             this.sp_login_bg.x = (this.view_width - this.sp_login_bg.width) / 2
             this.sp_login_bg.y = (this.view_height - this.sp_login_bg.height) / 2
             // 关闭按钮
@@ -199,13 +199,11 @@ class LoginScene {
     open_door() {
         document.getElementById("login_window").style.visibility = "hidden"
         this.pixi_parent.removeChild(this.sp_login_bg)
-        this.sp_login_bg = null
         
-        this.sp_open_door_bg = new PIXI.Sprite(new PIXI.Texture(globalThis.BaseTextureCache['chrsel/22']))
-        this.sp_open_door_bg.x = (this.view_width - this.sp_open_door_bg.width) / 2
-        this.sp_open_door_bg.y = (this.view_height - this.sp_open_door_bg.height) / 2
-        this.pixi_parent.addChild(this.sp_open_door_bg)
-        {
+        if (!!!this.sp_open_door_bg) {
+            this.sp_open_door_bg = new PIXI.Sprite(new PIXI.Texture(globalThis.BaseTextureCache['chrsel/22']))
+            this.sp_open_door_bg.x = (this.view_width - this.sp_open_door_bg.width) / 2
+            this.sp_open_door_bg.y = (this.view_height - this.sp_open_door_bg.height) / 2
             const textures = []
             // 10张图
             for(let i = 24; i <= 32; ++i) {
@@ -216,8 +214,10 @@ class LoginScene {
             this.sp_open_door.loop = false
             this.sp_open_door.x = (this.view_width - this.sp_open_door.textures[0].width) / 2
             this.sp_open_door.y = (this.view_height - this.sp_open_door.textures[0].height) / 2
-            this.pixi_parent.addChild(this.sp_open_door)
         }
+        this.sp_open_door.currentFrame = 0
+        this.pixi_parent.addChild(this.sp_open_door_bg)
+        this.pixi_parent.addChild(this.sp_open_door)
         this.sp_open_door.onComplete = () => {
             // 开门动作完毕之后进入角色选择界面
             this.manager.change_scene(3)
