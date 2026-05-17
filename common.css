@@ -40,4 +40,5 @@ label, p {
     -ms-user-select: none;
     user-select: none;
     cursor: default;
+    white-space: nowrap;
 }

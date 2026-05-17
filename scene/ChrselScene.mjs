@@ -10,6 +10,7 @@ class ChrselScene {
         this.view_width = options.width // 视区宽度
         this.view_height = options.height // 视区高度
         this.need_loading = new Array // 需要加载的图片
+        this.chr_arr = []
         for (let i = 65; i <= 78; ++i)
             this.need_loading.push(["prguse", i]) // 角色窗体所需控件图片
         {
@@ -212,6 +213,27 @@ class ChrselScene {
                 this.pixi_parent.removeChild(this.sp_chrsel_exit)
                 this.exit_click()
             }
+
+            // 角色1信息
+            const dom_chrsel_name1 = document.getElementById("chrsel_name1")
+            dom_chrsel_name1.style.left = `${this.sp_login_bg.x + 117}px`
+            dom_chrsel_name1.style.top = `${this.sp_login_bg.y + 492}px`
+            const dom_chrsel_level1 = document.getElementById("chrsel_level1")
+            dom_chrsel_level1.style.left = `${this.sp_login_bg.x + 117}px`
+            dom_chrsel_level1.style.top = `${this.sp_login_bg.y + 521}px`
+            const dom_chrsel_jogb1 = document.getElementById("chrsel_jogb1")
+            dom_chrsel_jogb1.style.left = `${this.sp_login_bg.x + 117}px`
+            dom_chrsel_jogb1.style.top = `${this.sp_login_bg.y + 551}px`
+            // 角色2信息
+            const dom_chrsel_name2 = document.getElementById("chrsel_name2")
+            dom_chrsel_name2.style.left = `${this.sp_login_bg.x + 671}px`
+            dom_chrsel_name2.style.top = `${this.sp_login_bg.y + 492}px`
+            const dom_chrsel_level2 = document.getElementById("chrsel_level2")
+            dom_chrsel_level2.style.left = `${this.sp_login_bg.x + 671}px`
+            dom_chrsel_level2.style.top = `${this.sp_login_bg.y + 521}px`
+            const dom_chrsel_jogb2 = document.getElementById("chrsel_jogb2")
+            dom_chrsel_jogb2.style.left = `${this.sp_login_bg.x + 671}px`
+            dom_chrsel_jogb2.style.top = `${this.sp_login_bg.y + 551}px`
         }
         if (this.first_update) {
             this.pixi_parent.addChild(this.sp_login_bg)
@@ -222,6 +244,13 @@ class ChrselScene {
 
     // 进入当前场景
     enter_scene() {
+        this.chr_arr = []
+        document.getElementById("chrsel_name1").innerText = ''
+        document.getElementById("chrsel_level1").innerText = ''
+        document.getElementById("chrsel_jogb1").innerText = ''
+        document.getElementById("chrsel_name2").innerText = ''
+        document.getElementById("chrsel_level2").innerText = ''
+        document.getElementById("chrsel_jogb2").innerText = ''
         this.first_update = true
     }
 
@@ -256,7 +285,44 @@ class ChrselScene {
     }
 
     on_query_chr_response(head, body) {
-
+        if (!!body) {
+            const str = this.manager.gb2312_decoder.decode(this.manager.edcode.decode_string(body))
+            const tokens = str.split('/')
+            this.chr_arr.push({
+                name: tokens[0]
+                , job: parseInt(tokens[1])
+                , level: parseInt(tokens[3])
+                , sex: parseInt(tokens[4])
+                , select: true
+            })
+            if (this.chr_arr[0].name[0] == '*') {
+                this.chr_arr[0].name = this.chr_arr[0].name.substring(1)
+            }
+            if (tokens.length > 6) {
+                this.chr_arr.push({
+                    name: tokens[5]
+                    , job: parseInt(tokens[6])
+                    , level: parseInt(tokens[8])
+                    , sex: parseInt(tokens[9])
+                    , select: false
+                })
+                if (this.chr_arr[1].name[0] == '*') {
+                    this.chr_arr[1].name = this.chr_arr[1].name.substring(1)
+                    this.chr_arr[0].select = false
+                    this.chr_arr[1].select = true
+                }
+            }
+        }
+        if (this.chr_arr.length > 0) {
+            document.getElementById("chrsel_name1").innerText = this.chr_arr[0].name
+            document.getElementById("chrsel_level1").innerText = this.chr_arr[0].level
+            document.getElementById("chrsel_jogb1").innerText = SDK.GetJobName(this.chr_arr[0].job)
+        }
+        if (this.chr_arr.length > 1) {
+            document.getElementById("chrsel_name2").innerText = this.chr_arr[1].name
+            document.getElementById("chrsel_level2").innerText = this.chr_arr[1].level
+            document.getElementById("chrsel_jogb2").innerText = SDK.GetJobName(this.chr_arr[1].job)
+        }
     }
 }
 

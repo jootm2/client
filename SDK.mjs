@@ -1342,6 +1342,14 @@ function Hiword(n) {
   return ((n | 0) >> 16) & 0xFFFF;
 }
 
+function GetJobName(job) {
+    switch (job) {
+        case 0: return "武士"
+        case 1: return "魔法师"
+        case 2: return "道士"
+    }
+}
+
 export { Palletes, widthBytes, skipBytes, colorCountToBitCount
     , Messages, DlgButtons, transtring, ClientVersion
-    , Loword, Hiword };
+    , Loword, Hiword, GetJobName };

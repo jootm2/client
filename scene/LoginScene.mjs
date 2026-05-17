@@ -80,6 +80,11 @@ class LoginScene {
             const dom_login_psw = document.getElementById("login_psw")
             dom_login_psw.style.left = `${this.sp_login_bg.x + 98}px`
             dom_login_psw.style.top = `${this.sp_login_bg.y + 117}px`
+            dom_login_psw.addEventListener('keyup', e => {
+                if (e.key === 'Enter') {
+                    this.ok_click()
+                }
+            })
             // 新用户
             const bt_newuser = globalThis.BaseTextureCache['prguse/61']
             const dom_new_account = document.getElementById("new_account")
