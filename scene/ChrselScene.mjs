@@ -41,6 +41,10 @@ class ChrselScene {
         this.sp_chrsel_exit = null
         this.first_update = false // 是否初次从其他场景切换过来
         document.getElementById("chrsel_svr_title").innerText = options.server_title
+        this.asa_chrsel_selected = []//[3][2] // 不同职业/性别的启用状态的轮播图片
+        this.asa_chrsel_toggle_selected = []//[3][2][2] // 不同职业/性别的启用/禁用状态的轮播图片
+        this.asa_showing1 = null
+        this.asa_showing2 = null
     }
 
     update() {
@@ -53,6 +57,26 @@ class ChrselScene {
                 }
             }
             this.need_loading = new Array
+
+            this.asa_chrsel_selected.push([])
+            this.asa_chrsel_selected.push([])
+            this.asa_chrsel_selected.push([])
+            for (let i = 0; i < 3; ++i) { // 男性角色
+                const textures = []
+                for(let k = 40 + i * 40, l = 0; k <= 55 + i * 40; ++k, l += PIXI.Ticker.shared.deltaMS) {
+                    textures.push({texture: new PIXI.Texture(globalThis.BaseTextureCache[`chrsel/${k}`])
+                        , time: l })
+                }
+                this.asa_chrsel_selected[i][0] = new PIXI.AnimatedSprite(textures)
+            }
+            for (let i = 0; i < 3; ++i) { // 女性角色
+                const textures = []
+                for(let k = 160 + i * 40, l = 0; k <= 175 + i * 40; ++k, l += PIXI.Ticker.shared.deltaMS) {
+                    textures.push({texture: new PIXI.Texture(globalThis.BaseTextureCache[`chrsel/${k}`])
+                        , time: l })
+                }
+                this.asa_chrsel_selected[i][1] = new PIXI.AnimatedSprite(textures)
+            }
 
             this.sp_login_bg = new PIXI.Sprite(new PIXI.Texture(globalThis.BaseTextureCache['prguse/65']))
             this.sp_login_bg.x = (this.view_width - this.sp_login_bg.width) / 2
@@ -239,18 +263,13 @@ class ChrselScene {
             this.pixi_parent.addChild(this.sp_login_bg)
             document.getElementById("chrsel_window").style.visibility = "visible"
             this.first_update = false
+            this._on_chrs_change()
         }
     }
 
     // 进入当前场景
     enter_scene() {
         this.chr_arr = []
-        document.getElementById("chrsel_name1").innerText = ''
-        document.getElementById("chrsel_level1").innerText = ''
-        document.getElementById("chrsel_jogb1").innerText = ''
-        document.getElementById("chrsel_name2").innerText = ''
-        document.getElementById("chrsel_level2").innerText = ''
-        document.getElementById("chrsel_jogb2").innerText = ''
         this.first_update = true
     }
 
@@ -258,14 +277,103 @@ class ChrselScene {
     leave_scene() {
         document.getElementById("chrsel_window").style.visibility = "hidden"
         this.pixi_parent.removeChild(this.sp_login_bg)
+        if (!!this.asa_showing1) {
+            if (typeof this.asa_showing1.stop === 'function') {
+                this.asa_showing1.stop()
+            }
+            this.pixi_parent.removeChild(this.asa_showing1)
+            this.asa_showing1 = null
+        }
+        if (!!this.asa_showing2) {
+            if (typeof this.asa_showing2.stop === 'function') {
+                this.asa_showing2.stop()
+            }
+            this.pixi_parent.removeChild(this.asa_showing2)
+            this.asa_showing2 = null
+        }
+    }
+
+    // 角色列表、启用状态发生改变时触发
+    _on_chrs_change() {
+        document.getElementById("chrsel_name1").innerText = ''
+        document.getElementById("chrsel_level1").innerText = ''
+        document.getElementById("chrsel_jogb1").innerText = ''
+        document.getElementById("chrsel_name2").innerText = ''
+        document.getElementById("chrsel_level2").innerText = ''
+        document.getElementById("chrsel_jogb2").innerText = ''
+        if (!!this.asa_showing1) {
+            if (typeof this.asa_showing1.stop === 'function') {
+                this.asa_showing1.stop()
+            }
+            this.pixi_parent.removeChild(this.asa_showing1)
+            this.asa_showing1 = null
+        }
+        if (!!this.asa_showing2) {
+            if (typeof this.asa_showing2.stop === 'function') {
+                this.asa_showing2.stop()
+            }
+            this.pixi_parent.removeChild(this.asa_showing2)
+            this.asa_showing2 = null
+        }
+        if (this.need_loading.length < 1) {
+            if (this.chr_arr.length > 0) {
+                document.getElementById("chrsel_name1").innerText = this.chr_arr[0].name
+                document.getElementById("chrsel_level1").innerText = this.chr_arr[0].level
+                document.getElementById("chrsel_jogb1").innerText = SDK.GetJobName(this.chr_arr[0].job)
+            }
+            if (this.chr_arr.length > 1) {
+                document.getElementById("chrsel_name2").innerText = this.chr_arr[1].name
+                document.getElementById("chrsel_level2").innerText = this.chr_arr[1].level
+                document.getElementById("chrsel_jogb2").innerText = SDK.GetJobName(this.chr_arr[1].job)
+            }
+            // 播放角色图片
+            if (this.chr_arr.length > 0) {
+                if (this.chr_arr[0].select) {
+                    this.asa_showing1 = this.asa_chrsel_selected[this.chr_arr[0].job][this.chr_arr[0].sex]
+                    this.asa_showing1.play()
+                } else {
+                    let img = 40
+                    img += this.chr_arr[0].job * 40
+                    img += this.chr_arr[0].sex * 120
+                    img += 20
+                    this.asa_showing1 = new PIXI.Sprite(new PIXI.Texture(globalThis.BaseTextureCache[`chrsel/${img}`]))
+                }
+                this.asa_showing1.x = 90 + (300 - this.asa_showing1.width) / 2
+                this.asa_showing1.y = 58 + 360 - this.asa_showing1.height
+                this.pixi_parent.addChild(this.asa_showing1)
+            }
+            if (this.chr_arr.length > 1) {
+                if (this.chr_arr[1].select) {
+                    this.asa_showing2 = this.asa_chrsel_selected[this.chr_arr[1].job][this.chr_arr[1].sex]
+                    this.asa_showing2.play()
+                } else {
+                    let img = 40
+                    img += this.chr_arr[1].job * 40
+                    img += this.chr_arr[1].sex * 120
+                    img += 20
+                    this.asa_showing2 = new PIXI.Sprite(new PIXI.Texture(globalThis.BaseTextureCache[`chrsel/${img}`]))
+                }
+                this.asa_showing2.x = 430 + (300 - this.asa_showing2.width) / 2
+                this.asa_showing2.y = 58 + 360 - this.asa_showing2.height - 10
+                this.pixi_parent.addChild(this.asa_showing2)
+            }
+        }
     }
 
     select1_click() {
-
+        if (this.chr_arr.length > 1 && this.chr_arr[1].select) {
+            this.chr_arr[0].select = true
+            this.chr_arr[1].select = false
+            this._on_chrs_change()
+        }
     }
 
     select2_click() {
-
+        if (this.chr_arr.length > 1 && this.chr_arr[0].select) {
+            this.chr_arr[0].select = false
+            this.chr_arr[1].select = true
+            this._on_chrs_change()
+        }
     }
 
     start_click() {
@@ -313,16 +421,7 @@ class ChrselScene {
                 }
             }
         }
-        if (this.chr_arr.length > 0) {
-            document.getElementById("chrsel_name1").innerText = this.chr_arr[0].name
-            document.getElementById("chrsel_level1").innerText = this.chr_arr[0].level
-            document.getElementById("chrsel_jogb1").innerText = SDK.GetJobName(this.chr_arr[0].job)
-        }
-        if (this.chr_arr.length > 1) {
-            document.getElementById("chrsel_name2").innerText = this.chr_arr[1].name
-            document.getElementById("chrsel_level2").innerText = this.chr_arr[1].level
-            document.getElementById("chrsel_jogb2").innerText = SDK.GetJobName(this.chr_arr[1].job)
-        }
+        this._on_chrs_change()
     }
 }
 
