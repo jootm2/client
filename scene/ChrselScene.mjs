@@ -13,6 +13,8 @@ class ChrselScene {
         this.chr_arr = []
         for (let i = 65; i <= 78; ++i)
             this.need_loading.push(["prguse", i]) // 角色窗体所需控件图片
+        for (let i = 4; i <= 17; ++i)
+            this.need_loading.push(["chrsel", i])
         {
             // 角色窗体所需三职业图片
             // 40-55 男战 60-72 男战解冻（反向则冻住）
@@ -46,6 +48,7 @@ class ChrselScene {
         this.asa_showing1 = null
         this.asa_showing2 = null
         this._toggle_ing = false // 当前是否处于切换角色启用状态过程
+        this.sp_select_showing = null
     }
 
     update() {
@@ -64,17 +67,17 @@ class ChrselScene {
             this.asa_chrsel_selected.push([])
             for (let i = 0; i < 3; ++i) { // 男性角色
                 const textures = []
-                for(let k = 40 + i * 40, l = 0; k <= 55 + i * 40; ++k, l += PIXI.Ticker.shared.deltaMS) {
+                for(let k = 40 + i * 40; k <= 55 + i * 40; ++k) {
                     textures.push({texture: new PIXI.Texture(globalThis.BaseTextureCache[`chrsel/${k}`])
-                        , time: l })
+                        , time: 120 })
                 }
                 this.asa_chrsel_selected[i][0] = new PIXI.AnimatedSprite(textures)
             }
             for (let i = 0; i < 3; ++i) { // 女性角色
                 const textures = []
-                for(let k = 160 + i * 40, l = 0; k <= 175 + i * 40; ++k, l += PIXI.Ticker.shared.deltaMS) {
+                for(let k = 160 + i * 40; k <= 175 + i * 40; ++k) {
                     textures.push({texture: new PIXI.Texture(globalThis.BaseTextureCache[`chrsel/${k}`])
-                        , time: l })
+                        , time: 120 })
                 }
                 this.asa_chrsel_selected[i][1] = new PIXI.AnimatedSprite(textures)
             }
@@ -89,18 +92,18 @@ class ChrselScene {
             this.asa_chrsel_toggle_selected[2].push([])
             for (let i = 0; i < 3; ++i) { // 男性角色
                 const textures = []
-                for(let k = 60 + i * 40, l = 0; k <= 72 + i * 40; ++k, l += PIXI.Ticker.shared.deltaMS) {
+                for(let k = 60 + i * 40; k <= 72 + i * 40; ++k) {
                     textures.push({texture: new PIXI.Texture(globalThis.BaseTextureCache[`chrsel/${k}`])
-                        , time: l })
+                        , time: 120 })
                 }
                 this.asa_chrsel_toggle_selected[i][0][0] = new PIXI.AnimatedSprite(textures)
                 this.asa_chrsel_toggle_selected[i][0][1] = new PIXI.AnimatedSprite(Array.from(textures).reverse())
             }
             for (let i = 0; i < 3; ++i) {
                 const textures = []
-                for(let k = 180 + i * 40, l = 0; k <= 192 + i * 40; ++k, l += PIXI.Ticker.shared.deltaMS) {
+                for(let k = 180 + i * 40; k <= 192 + i * 40; ++k) {
                     textures.push({texture: new PIXI.Texture(globalThis.BaseTextureCache[`chrsel/${k}`])
-                        , time: l })
+                        , time: 120 })
                 }
                 this.asa_chrsel_toggle_selected[i][1][0] = new PIXI.AnimatedSprite(textures)
                 this.asa_chrsel_toggle_selected[i][1][1] = new PIXI.AnimatedSprite(Array.from(textures).reverse())
@@ -316,6 +319,10 @@ class ChrselScene {
             this.pixi_parent.removeChild(this.asa_showing2)
             this.asa_showing2 = null
         }
+        if (!!this.sp_select_showing) {
+            this.sp_select_showing.stop()
+            this.pixi_parent.removeChild(this.sp_select_showing)
+        }
     }
 
     // 离开当前场景
@@ -388,6 +395,15 @@ class ChrselScene {
 
             this._toggle_ing = true
             this._stop_chr_showing()
+            {
+                const textures = []
+                for(let k = 4; k <= 17; ++k) {
+                    textures.push({texture: new PIXI.Texture(globalThis.BaseTextureCache[`chrsel/${k}`])
+                        , time: 110 })
+                }
+                this.sp_select_showing = new PIXI.AnimatedSprite(textures)
+                this.sp_select_showing.blendMode = PIXI.BLEND_MODES.ADD
+            }
             if (nc == 1) {
                 // 第一个角色解冻
                 this.asa_showing1 = this.asa_chrsel_toggle_selected[this.chr_arr[0].job][this.chr_arr[0].sex][0]
@@ -395,29 +411,38 @@ class ChrselScene {
                 this.asa_showing2 = this.asa_chrsel_toggle_selected[this.chr_arr[1].job][this.chr_arr[1].sex][1]
                 this.chr_arr[0].select = true
                 this.chr_arr[1].select = false
+                this.sp_select_showing.x = 90
+                this.sp_select_showing.y = 58
             } else {
                 this.asa_showing1 = this.asa_chrsel_toggle_selected[this.chr_arr[0].job][this.chr_arr[0].sex][1]
                 this.asa_showing2 = this.asa_chrsel_toggle_selected[this.chr_arr[1].job][this.chr_arr[1].sex][0]
                 this.chr_arr[0].select = false
                 this.chr_arr[1].select = true
+                this.sp_select_showing.x = 430
+                this.sp_select_showing.y = 60
             }
             this.asa_showing1.currentFrame = 0
             this.asa_showing1.loop = false
             this.asa_showing1.play()
             this.asa_showing1.onComplete = () => {
                 this.asa_showing2.stop()
+                this.sp_select_showing.stop()
                 this._on_chrs_change()
                 this._toggle_ing = false
             }
             this.asa_showing2.currentFrame = 0
             this.asa_showing2.loop = false
             this.asa_showing2.play()
+            this.sp_select_showing.currentFrame = 0
+            this.sp_select_showing.loop = false
+            this.sp_select_showing.play()
             this.asa_showing1.x = 90 + (300 - this.asa_showing1.width) / 2
             this.asa_showing1.y = 58 + 360 - this.asa_showing1.height
             this.pixi_parent.addChild(this.asa_showing1)
             this.asa_showing2.x = 430 + (300 - this.asa_showing2.width) / 2
             this.asa_showing2.y = 58 + 360 - this.asa_showing2.height - 10
             this.pixi_parent.addChild(this.asa_showing2)
+            this.pixi_parent.addChild(this.sp_select_showing)
         } while (false)
     }
     select1_click() {

@@ -213,7 +213,7 @@ class LoginScene {
             // 10张图
             for(let i = 24; i <= 32; ++i) {
                 textures.push({texture: new PIXI.Texture(globalThis.BaseTextureCache[`chrsel/${i}`])
-                    , time: (i - 24) * PIXI.Ticker.shared.deltaMS})
+                    , time: 230})
             }
             this.sp_open_door = new PIXI.AnimatedSprite(textures)
             this.sp_open_door.loop = false
