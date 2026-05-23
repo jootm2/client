@@ -45,6 +45,7 @@ class ChrselScene {
         this.asa_chrsel_toggle_selected = []//[3][2][2] // 不同职业/性别的启用/禁用状态的轮播图片
         this.asa_showing1 = null
         this.asa_showing2 = null
+        this._toggle_ing = false // 当前是否处于切换角色启用状态过程
     }
 
     update() {
@@ -76,6 +77,33 @@ class ChrselScene {
                         , time: l })
                 }
                 this.asa_chrsel_selected[i][1] = new PIXI.AnimatedSprite(textures)
+            }
+            this.asa_chrsel_toggle_selected.push([]) // 战士
+            this.asa_chrsel_toggle_selected[0].push([]) // 男战
+            this.asa_chrsel_toggle_selected[0].push([]) // 女战
+            this.asa_chrsel_toggle_selected.push([])
+            this.asa_chrsel_toggle_selected[1].push([])
+            this.asa_chrsel_toggle_selected[1].push([])
+            this.asa_chrsel_toggle_selected.push([])
+            this.asa_chrsel_toggle_selected[2].push([])
+            this.asa_chrsel_toggle_selected[2].push([])
+            for (let i = 0; i < 3; ++i) { // 男性角色
+                const textures = []
+                for(let k = 60 + i * 40, l = 0; k <= 72 + i * 40; ++k, l += PIXI.Ticker.shared.deltaMS) {
+                    textures.push({texture: new PIXI.Texture(globalThis.BaseTextureCache[`chrsel/${k}`])
+                        , time: l })
+                }
+                this.asa_chrsel_toggle_selected[i][0][0] = new PIXI.AnimatedSprite(textures)
+                this.asa_chrsel_toggle_selected[i][0][1] = new PIXI.AnimatedSprite(Array.from(textures).reverse())
+            }
+            for (let i = 0; i < 3; ++i) {
+                const textures = []
+                for(let k = 180 + i * 40, l = 0; k <= 192 + i * 40; ++k, l += PIXI.Ticker.shared.deltaMS) {
+                    textures.push({texture: new PIXI.Texture(globalThis.BaseTextureCache[`chrsel/${k}`])
+                        , time: l })
+                }
+                this.asa_chrsel_toggle_selected[i][1][0] = new PIXI.AnimatedSprite(textures)
+                this.asa_chrsel_toggle_selected[i][1][1] = new PIXI.AnimatedSprite(Array.from(textures).reverse())
             }
 
             this.sp_login_bg = new PIXI.Sprite(new PIXI.Texture(globalThis.BaseTextureCache['prguse/65']))
@@ -273,10 +301,7 @@ class ChrselScene {
         this.first_update = true
     }
 
-    // 离开当前场景
-    leave_scene() {
-        document.getElementById("chrsel_window").style.visibility = "hidden"
-        this.pixi_parent.removeChild(this.sp_login_bg)
+    _stop_chr_showing() {
         if (!!this.asa_showing1) {
             if (typeof this.asa_showing1.stop === 'function') {
                 this.asa_showing1.stop()
@@ -293,6 +318,13 @@ class ChrselScene {
         }
     }
 
+    // 离开当前场景
+    leave_scene() {
+        document.getElementById("chrsel_window").style.visibility = "hidden"
+        this.pixi_parent.removeChild(this.sp_login_bg)
+        this._stop_chr_showing()
+    }
+
     // 角色列表、启用状态发生改变时触发
     _on_chrs_change() {
         document.getElementById("chrsel_name1").innerText = ''
@@ -301,20 +333,7 @@ class ChrselScene {
         document.getElementById("chrsel_name2").innerText = ''
         document.getElementById("chrsel_level2").innerText = ''
         document.getElementById("chrsel_jogb2").innerText = ''
-        if (!!this.asa_showing1) {
-            if (typeof this.asa_showing1.stop === 'function') {
-                this.asa_showing1.stop()
-            }
-            this.pixi_parent.removeChild(this.asa_showing1)
-            this.asa_showing1 = null
-        }
-        if (!!this.asa_showing2) {
-            if (typeof this.asa_showing2.stop === 'function') {
-                this.asa_showing2.stop()
-            }
-            this.pixi_parent.removeChild(this.asa_showing2)
-            this.asa_showing2 = null
-        }
+        this._stop_chr_showing()
         if (this.need_loading.length < 1) {
             if (this.chr_arr.length > 0) {
                 document.getElementById("chrsel_name1").innerText = this.chr_arr[0].name
@@ -360,31 +379,69 @@ class ChrselScene {
         }
     }
 
+    _toggle_chr_selected(nc) {
+        do {
+            if (this.need_loading.length > 0) break
+            if (this.chr_arr.length < 2) break
+            if (nc == 1 && this.chr_arr[0].select) break
+            if (nc == 2 && this.chr_arr[1].select) break
+
+            this._toggle_ing = true
+            this._stop_chr_showing()
+            if (nc == 1) {
+                // 第一个角色解冻
+                this.asa_showing1 = this.asa_chrsel_toggle_selected[this.chr_arr[0].job][this.chr_arr[0].sex][0]
+                // 第二个角色冻上
+                this.asa_showing2 = this.asa_chrsel_toggle_selected[this.chr_arr[1].job][this.chr_arr[1].sex][1]
+                this.chr_arr[0].select = true
+                this.chr_arr[1].select = false
+            } else {
+                this.asa_showing1 = this.asa_chrsel_toggle_selected[this.chr_arr[0].job][this.chr_arr[0].sex][1]
+                this.asa_showing2 = this.asa_chrsel_toggle_selected[this.chr_arr[1].job][this.chr_arr[1].sex][0]
+                this.chr_arr[0].select = false
+                this.chr_arr[1].select = true
+            }
+            this.asa_showing1.currentFrame = 0
+            this.asa_showing1.loop = false
+            this.asa_showing1.play()
+            this.asa_showing1.onComplete = () => {
+                this.asa_showing2.stop()
+                this._on_chrs_change()
+                this._toggle_ing = false
+            }
+            this.asa_showing2.currentFrame = 0
+            this.asa_showing2.loop = false
+            this.asa_showing2.play()
+            this.asa_showing1.x = 90 + (300 - this.asa_showing1.width) / 2
+            this.asa_showing1.y = 58 + 360 - this.asa_showing1.height
+            this.pixi_parent.addChild(this.asa_showing1)
+            this.asa_showing2.x = 430 + (300 - this.asa_showing2.width) / 2
+            this.asa_showing2.y = 58 + 360 - this.asa_showing2.height - 10
+            this.pixi_parent.addChild(this.asa_showing2)
+        } while (false)
+    }
     select1_click() {
-        if (this.chr_arr.length > 1 && this.chr_arr[1].select) {
-            this.chr_arr[0].select = true
-            this.chr_arr[1].select = false
-            this._on_chrs_change()
-        }
+        if (this._toggle_ing) return
+        this._toggle_chr_selected(1)
     }
 
     select2_click() {
-        if (this.chr_arr.length > 1 && this.chr_arr[0].select) {
-            this.chr_arr[0].select = false
-            this.chr_arr[1].select = true
-            this._on_chrs_change()
-        }
+        if (this._toggle_ing) return
+        this._toggle_chr_selected(2)
     }
 
     start_click() {
+        if (this._toggle_ing) return
 
     }
 
     new_click() {
+        if (this._toggle_ing) return
 
     }
 
     del_click() {
+        if (this._toggle_ing) return
 
     }
 
