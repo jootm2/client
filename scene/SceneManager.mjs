@@ -244,7 +244,7 @@ class SceneManager {
                     this.ws.onmessage = (event) => {
                         this._on_ws_message(event)
                     }
-                    break;
+                    break
                 }
                 case 3: {
                     this.ws = new WebSocket(this.server_base_url + `/${this.runport}`)
@@ -254,13 +254,13 @@ class SceneManager {
                     this.ws.onopen = (event) => {
                         this.send_query_chr()
                     }
-                    break;
+                    break
                 }
                 case 4: {
-                    break;
+                    break
                 }
                 default:
-                    break;
+                    break
             }
         }
     }
@@ -279,12 +279,12 @@ class SceneManager {
             case SDK.Messages.SM_PASSWD_FAIL:
             case SDK.Messages.SM_PASSOK_SELECTSERVER: {
                 this.login_scene.on_login_response(head)
-                break;
+                break
             }
             case SDK.Messages.SM_CHGPASSWD_SUCCESS:
             case SDK.Messages.SM_CHGPASSWD_FAIL: {
                 this.chg_pwd_scene.on_chgpwd_response(head)
-                break;
+                break
             }
             case SDK.Messages.SM_SELECTSERVER_OK: {
                 this.ws.close()
@@ -293,11 +293,19 @@ class SceneManager {
                 this.certification = str[2]
                 this.runport = str[1]
                 this.login_scene.open_door()
-                break;
+                break
             }
             case SDK.Messages.SM_QUERYCHR: {
                 this.chrsel_scene.on_query_chr_response(head, body)
-                break;
+                break
+            }
+            case SDK.Messages.SM_DELCHR_SUCCESS: {
+                this.send_query_chr()
+                break
+            }
+            case SDK.Messages.SM_DELCHR_FAIL: {
+                this.dlg_message("[错误信息] 删除游戏角色时出现错误！", [SDK.DlgButtons.mbOk])
+                break
             }
         }
     }
@@ -391,6 +399,11 @@ class SceneManager {
     send_query_chr() {
         const msg = this.edcode.make_default_msg(SDK.Messages.CM_QUERYCHR)
             + this.edcode.encode_string(`${this.login_id}/${this.certification}`)
+        this._send_socket(msg)
+    }
+    send_del_chr(name) {
+        const msg = this.edcode.make_default_msg(SDK.Messages.CM_DELCHR)
+            + this.edcode.encode_string(name)
         this._send_socket(msg)
     }
     // end 与服务器交互函数

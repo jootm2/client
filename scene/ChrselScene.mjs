@@ -462,12 +462,23 @@ class ChrselScene {
 
     new_click() {
         if (this._toggle_ing) return
+        if (this.chr_arr.length > 1) {
+            this.manager.dlg_message("你可以为每个单独的帐户创建两个角色。", [SDK.DlgButtons.mbOk])
+            return
+        }
 
     }
 
     del_click() {
         if (this._toggle_ing) return
-
+        if (this.chr_arr.length < 1) return
+        const chr_name = this.chr_arr[0].select ? this.chr_arr[0].name : this.chr_arr[1].name
+        this.manager.dlg_message('"' + chr_name + '"删除的角色是不能被恢复的。\\一段时间内，你将不能使用相同的角色名。\\你真的想要删除角色吗？'
+            , [SDK.DlgButtons.mbYes, SDK.DlgButtons.mbNo], (mb) => {
+            if (mb == SDK.DlgButtons.mbYes) {
+                this.manager.send_del_chr(chr_name)
+            }
+        })
     }
 
     exit_click() {
@@ -475,6 +486,7 @@ class ChrselScene {
     }
 
     on_query_chr_response(head, body) {
+        this.chr_arr = []
         if (!!body) {
             const str = this.manager.gb2312_decoder.decode(this.manager.edcode.decode_string(body))
             const tokens = str.split('/')
