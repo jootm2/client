@@ -11,7 +11,9 @@ class ChrselScene {
         this.view_height = options.height // 视区高度
         this.need_loading = new Array // 需要加载的图片
         this.chr_arr = []
-        for (let i = 65; i <= 78; ++i)
+        for (let i = 55; i <= 59; ++i)
+            this.need_loading.push(["prguse", i])
+        for (let i = 62; i <= 78; ++i)
             this.need_loading.push(["prguse", i]) // 角色窗体所需控件图片
         for (let i = 4; i <= 17; ++i)
             this.need_loading.push(["chrsel", i])
@@ -48,6 +50,7 @@ class ChrselScene {
         this.asa_showing1 = null
         this.asa_showing2 = null
         this._toggle_ing = false // 当前是否处于切换角色启用状态过程
+        this._create_ing = false
         this.sp_select_showing = null
     }
 
@@ -446,31 +449,259 @@ class ChrselScene {
         } while (false)
     }
     select1_click() {
-        if (this._toggle_ing) return
+        if (this._toggle_ing || this._create_ing) return
         this._toggle_chr_selected(1)
     }
 
     select2_click() {
-        if (this._toggle_ing) return
+        if (this._toggle_ing || this._create_ing) return
         this._toggle_chr_selected(2)
     }
 
     start_click() {
-        if (this._toggle_ing) return
+        if (this._toggle_ing || this._create_ing) return
 
     }
 
     new_click() {
-        if (this._toggle_ing) return
+        if (this._toggle_ing || this._create_ing) return
         if (this.chr_arr.length > 1) {
             this.manager.dlg_message("你可以为每个单独的帐户创建两个角色。", [SDK.DlgButtons.mbOk])
             return
         }
-
+        this._create_ing = true
+        const sp_new_bg = new PIXI.Sprite(new PIXI.Texture(globalThis.BaseTextureCache['prguse/73']))
+        const sp_new_close = new PIXI.Sprite(new PIXI.Texture(globalThis.BaseTextureCache['prguse/64']))
+        const sp_new_ok = new PIXI.Sprite(new PIXI.Texture(globalThis.BaseTextureCache['prguse/62']))
+        const sp_new_job0_down = new PIXI.Sprite(new PIXI.Texture(globalThis.BaseTextureCache['prguse/74']))
+        const sp_new_job1_down = new PIXI.Sprite(new PIXI.Texture(globalThis.BaseTextureCache['prguse/75']))
+        const sp_new_job2_down = new PIXI.Sprite(new PIXI.Texture(globalThis.BaseTextureCache['prguse/76']))
+        const sp_new_job0_select = new PIXI.Sprite(new PIXI.Texture(globalThis.BaseTextureCache['prguse/55']))
+        const sp_new_job1_select = new PIXI.Sprite(new PIXI.Texture(globalThis.BaseTextureCache['prguse/56']))
+        const sp_new_job2_select = new PIXI.Sprite(new PIXI.Texture(globalThis.BaseTextureCache['prguse/57']))
+        const sp_new_sex0_down = new PIXI.Sprite(new PIXI.Texture(globalThis.BaseTextureCache['prguse/77']))
+        const sp_new_sex1_down = new PIXI.Sprite(new PIXI.Texture(globalThis.BaseTextureCache['prguse/78']))
+        const sp_new_sex0_select = new PIXI.Sprite(new PIXI.Texture(globalThis.BaseTextureCache['prguse/58']))
+        const sp_new_sex1_select = new PIXI.Sprite(new PIXI.Texture(globalThis.BaseTextureCache['prguse/59']))
+        const dom_new_window = document.getElementById("chrsel_new_window")
+        const _this = this
+        let job = 0
+        let sex = 0
+        function cancel_create() {
+            _this.pixi_parent.removeChild(sp_new_bg, sp_new_close
+                , sp_new_ok, sp_new_job0_down, sp_new_job1_down
+                , sp_new_job2_down, sp_new_job0_select, sp_new_job1_select
+                , sp_new_job2_select, sp_new_sex0_down, sp_new_sex1_down
+                , sp_new_sex0_select, sp_new_sex1_select
+            )
+            _this._create_ing = false
+            dom_new_window.style.visibility = "hidden"
+        }
+        function refresh_job_sex() {
+            if (job == 0) {
+                _this.pixi_parent.removeChild(sp_new_job1_select, sp_new_job2_select)
+                _this.pixi_parent.addChild(sp_new_job0_select)
+            } else if (job == 1) {
+                _this.pixi_parent.removeChild(sp_new_job0_select, sp_new_job2_select)
+                _this.pixi_parent.addChild(sp_new_job1_select)
+            } else if (job == 2) {
+                _this.pixi_parent.removeChild(sp_new_job0_select, sp_new_job1_select)
+                _this.pixi_parent.addChild(sp_new_job2_select)
+            }
+            if (sex == 0) {
+                _this.pixi_parent.removeChild(sp_new_sex1_select)
+                _this.pixi_parent.addChild(sp_new_sex0_select)
+            } else {
+                _this.pixi_parent.removeChild(sp_new_sex0_select)
+                _this.pixi_parent.addChild(sp_new_sex1_select)
+            }
+        }
+        function commit_create() {
+            cancel_create()
+            const name = document.getElementById("chrsel_new_name").value
+            if (!!name) {
+                _this.manager.send_new_chr(name, 1 + Math.floor(Math.random() * 5), job, sex)
+            }
+        }
+        const x = this.chr_arr.length > 0 ? 75 : 415
+        const y = 15
+        sp_new_bg.x = x
+        sp_new_bg.y = y
+        this.pixi_parent.addChild(sp_new_bg)
+        const dom_new_name = document.getElementById("chrsel_new_name")
+        dom_new_name.style.left = `${x + 71}px`
+        dom_new_name.style.top = `${y + 107}px`
+        sp_new_close.x = x + 248
+        sp_new_close.y = y + 31
+        const dom_new_close = document.getElementById("chrsel_new_close")
+        dom_new_close.style.left = `${sp_new_close.x}px`
+        dom_new_close.style.top = `${sp_new_close.y}px`
+        dom_new_close.style.width = `${sp_new_close.width}px`
+        dom_new_close.style.height = `${sp_new_close.height}px`
+        dom_new_close.onmousedown = (event) => {
+            this.pixi_parent.addChild(sp_new_close)
+        }
+        dom_new_close.onmouseleave = (event) => {
+            this.pixi_parent.removeChild(sp_new_close)
+        }
+        dom_new_close.onmouseup = (event) => {
+            this.pixi_parent.removeChild(sp_new_close)
+            cancel_create()
+        }
+        sp_new_job0_down.x = x + 48
+        sp_new_job0_down.y = y + 157
+        sp_new_job0_select.x = sp_new_job0_down.x
+        sp_new_job0_select.y = sp_new_job0_down.y
+        const dom_new_job0 = document.getElementById("chrsel_new_job0")
+        dom_new_job0.style.left = `${sp_new_job0_down.x}px`
+        dom_new_job0.style.top = `${sp_new_job0_down.y}px`
+        dom_new_job0.style.width = `${sp_new_job0_down.width}px`
+        dom_new_job0.style.height = `${sp_new_job0_down.height}px`
+        dom_new_job0.onmousedown = (event) => {
+            if (job != 0) {
+                this.pixi_parent.addChild(sp_new_job0_down)
+            }
+        }
+        dom_new_job0.onmouseleave = (event) => {
+            if (job != 0) {
+                this.pixi_parent.removeChild(sp_new_job0_down)
+            }
+        }
+        dom_new_job0.onmouseup = (event) => {
+            if (job != 0) {
+                this.pixi_parent.removeChild(sp_new_job0_down)
+                job = 0
+                refresh_job_sex()
+            }
+        }
+        sp_new_job1_down.x = x + 93
+        sp_new_job1_down.y = y + 157
+        sp_new_job1_select.x = sp_new_job1_down.x
+        sp_new_job1_select.y = sp_new_job1_down.y
+        const dom_new_job1 = document.getElementById("chrsel_new_job1")
+        dom_new_job1.style.left = `${sp_new_job1_down.x}px`
+        dom_new_job1.style.top = `${sp_new_job1_down.y}px`
+        dom_new_job1.style.width = `${sp_new_job1_down.width}px`
+        dom_new_job1.style.height = `${sp_new_job1_down.height}px`
+        dom_new_job1.onmousedown = (event) => {
+            if (job != 1) {
+                this.pixi_parent.addChild(sp_new_job1_down)
+            }
+        }
+        dom_new_job1.onmouseleave = (event) => {
+            if (job != 1) {
+                this.pixi_parent.removeChild(sp_new_job1_down)
+            }
+        }
+        dom_new_job1.onmouseup = (event) => {
+            if (job != 1) {
+                this.pixi_parent.removeChild(sp_new_job1_down)
+                job = 1
+                refresh_job_sex()
+            }
+        }
+        sp_new_job2_down.x = x + 138
+        sp_new_job2_down.y = y + 157
+        sp_new_job2_select.x = sp_new_job2_down.x
+        sp_new_job2_select.y = sp_new_job2_down.y
+        const dom_new_job2 = document.getElementById("chrsel_new_job2")
+        dom_new_job2.style.left = `${sp_new_job2_down.x}px`
+        dom_new_job2.style.top = `${sp_new_job2_down.y}px`
+        dom_new_job2.style.width = `${sp_new_job2_down.width}px`
+        dom_new_job2.style.height = `${sp_new_job2_down.height}px`
+        dom_new_job2.onmousedown = (event) => {
+            if (job != 2) {
+                this.pixi_parent.addChild(sp_new_job2_down)
+            }
+        }
+        dom_new_job2.onmouseleave = (event) => {
+            if (job != 2) {
+                this.pixi_parent.removeChild(sp_new_job2_down)
+            }
+        }
+        dom_new_job2.onmouseup = (event) => {
+            if (job != 2) {
+                this.pixi_parent.removeChild(sp_new_job2_down)
+                job = 2
+                refresh_job_sex()
+            }
+        }
+        sp_new_sex0_down.x = x + 93
+        sp_new_sex0_down.y = y + 231
+        sp_new_sex0_select.x = sp_new_sex0_down.x
+        sp_new_sex0_select.y = sp_new_sex0_down.y
+        const dom_new_sex0 = document.getElementById("chrsel_new_sex0")
+        dom_new_sex0.style.left = `${sp_new_sex0_down.x}px`
+        dom_new_sex0.style.top = `${sp_new_sex0_down.y}px`
+        dom_new_sex0.style.width = `${sp_new_sex0_down.width}px`
+        dom_new_sex0.style.height = `${sp_new_sex0_down.height}px`
+        dom_new_sex0.onmousedown = (event) => {
+            if (sex != 0) {
+                this.pixi_parent.addChild(sp_new_sex0_down)
+            }
+        }
+        dom_new_sex0.onmouseleave = (event) => {
+            if (sex != 0) {
+                this.pixi_parent.removeChild(sp_new_sex0_down)
+            }
+        }
+        dom_new_sex0.onmouseup = (event) => {
+            if (sex != 0) {
+                this.pixi_parent.removeChild(sp_new_sex0_down)
+                sex = 0
+                refresh_job_sex()
+            }
+        }
+        sp_new_sex1_down.x = x + 138
+        sp_new_sex1_down.y = y + 231
+        sp_new_sex1_select.x = sp_new_sex1_down.x
+        sp_new_sex1_select.y = sp_new_sex1_down.y
+        const dom_new_sex1 = document.getElementById("chrsel_new_sex1")
+        dom_new_sex1.style.left = `${sp_new_sex1_down.x}px`
+        dom_new_sex1.style.top = `${sp_new_sex1_down.y}px`
+        dom_new_sex1.style.width = `${sp_new_sex1_down.width}px`
+        dom_new_sex1.style.height = `${sp_new_sex1_down.height}px`
+        dom_new_sex1.onmousedown = (event) => {
+            if (sex != 1) {
+                this.pixi_parent.addChild(sp_new_sex1_down)
+            }
+        }
+        dom_new_sex1.onmouseleave = (event) => {
+            if (sex != 1) {
+                this.pixi_parent.removeChild(sp_new_sex1_down)
+            }
+        }
+        dom_new_sex1.onmouseup = (event) => {
+            if (sex != 1) {
+                this.pixi_parent.removeChild(sp_new_sex1_down)
+                sex = 1
+                refresh_job_sex()
+            }
+        }
+        sp_new_ok.x = x + 102
+        sp_new_ok.y = y + 359
+        const dom_new_ok = document.getElementById("chrsel_new_ok")
+        dom_new_ok.style.left = `${sp_new_ok.x}px`
+        dom_new_ok.style.top = `${sp_new_ok.y}px`
+        dom_new_ok.style.width = `${sp_new_ok.width}px`
+        dom_new_ok.style.height = `${sp_new_ok.height}px`
+        dom_new_ok.onmousedown = (event) => {
+            this.pixi_parent.addChild(sp_new_ok)
+        }
+        dom_new_ok.onmouseleave = (event) => {
+            this.pixi_parent.removeChild(sp_new_ok)
+        }
+        dom_new_ok.onmouseup = (event) => {
+            this.pixi_parent.removeChild(sp_new_ok)
+            commit_create()
+        }
+        refresh_job_sex()
+        dom_new_window.style.visibility = "visible"
+        dom_new_name.focus()
     }
 
     del_click() {
-        if (this._toggle_ing) return
+        if (this._toggle_ing || this._create_ing) return
         if (this.chr_arr.length < 1) return
         const chr_name = this.chr_arr[0].select ? this.chr_arr[0].name : this.chr_arr[1].name
         this.manager.dlg_message('"' + chr_name + '"删除的角色是不能被恢复的。\\一段时间内，你将不能使用相同的角色名。\\你真的想要删除角色吗？'
@@ -482,6 +713,7 @@ class ChrselScene {
     }
 
     exit_click() {
+        if (this._toggle_ing || this._create_ing) return
         this.manager.change_scene(0)
     }
 
@@ -516,6 +748,32 @@ class ChrselScene {
             }
         }
         this._on_chrs_change()
+    }
+
+    on_del_chr_response(resp) {
+        if (resp.ident == SDK.Messages.SM_DELCHR_SUCCESS) {
+            this.manager.send_query_chr()
+        } else {
+            this.manager.dlg_message("[错误信息] 删除游戏角色时出现错误！")
+        }
+    }
+
+    on_new_chr_response(resp) {
+        if (resp.ident == SDK.Messages.SM_NEWCHR_SUCCESS) {
+            this.manager.send_query_chr()
+        } else {
+            if (resp.recog == 0) {
+                this.manager.dlg_message("[错误信息] 输入的角色名称包含非法字符！")
+            } else if (resp.recog == 2) {
+                this.manager.dlg_message("[错误信息] 创建角色名称已被其他人使用！")
+            } else if (resp.recog == 3) {
+                this.manager.dlg_message("[错误信息] 您只能创建二个游戏角色！")
+            } else if (resp.recog == 4) {
+                this.manager.dlg_message("[错误信息] 创建角色时出现错误！")
+            } else {
+                this.manager.dlg_message("[错误信息] 创建角色时出现未知错误！")
+            }
+        }
     }
 }
 

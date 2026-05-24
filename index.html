@@ -28,6 +28,12 @@
             transform: translateX(-50%);
             top: 5px;
         }
+        #chrsel_new_window {
+            visibility: hidden;
+        }
+        #chrsel_new_name {
+            width: 137px;
+        }
     </style>
     <link rel="stylesheet" href="common.css" />
 </head>
@@ -91,6 +97,16 @@
             <label id="chrsel_name2">x</label>
             <label id="chrsel_level2">x</label>
             <label id="chrsel_jogb2">x</label>
+            <div id="chrsel_new_window">
+                <input id="chrsel_new_name" maxlength="14" />
+                <button id="chrsel_new_close">x</button>
+                <button id="chrsel_new_job0">x</button>
+                <button id="chrsel_new_job1">x</button>
+                <button id="chrsel_new_job2">x</button>
+                <button id="chrsel_new_sex0">x</button>
+                <button id="chrsel_new_sex1">x</button>
+                <button id="chrsel_new_ok">ok</button>
+            </div>
         </div>
 
         <!-- 消息对话框、输入框（公告、退出确认、商铺购买个数） -->

@@ -299,12 +299,14 @@ class SceneManager {
                 this.chrsel_scene.on_query_chr_response(head, body)
                 break
             }
-            case SDK.Messages.SM_DELCHR_SUCCESS: {
-                this.send_query_chr()
+            case SDK.Messages.SM_DELCHR_SUCCESS:
+            case SDK.Messages.SM_DELCHR_FAIL: {
+                this.chrsel_scene.on_del_chr_response(head)
                 break
             }
-            case SDK.Messages.SM_DELCHR_FAIL: {
-                this.dlg_message("[错误信息] 删除游戏角色时出现错误！", [SDK.DlgButtons.mbOk])
+            case SDK.Messages.SM_NEWCHR_SUCCESS:
+            case SDK.Messages.SM_NEWCHR_FAIL: {
+                this.chrsel_scene.on_new_chr_response(head)
                 break
             }
         }
@@ -404,6 +406,11 @@ class SceneManager {
     send_del_chr(name) {
         const msg = this.edcode.make_default_msg(SDK.Messages.CM_DELCHR)
             + this.edcode.encode_string(name)
+        this._send_socket(msg)
+    }
+    send_new_chr(name, hair, job, sex) {
+        const msg = this.edcode.make_default_msg(SDK.Messages.CM_NEWCHR)
+            + this.edcode.encode_string(`${this.login_id}/${name}/${hair}/${job}/${sex}`)
         this._send_socket(msg)
     }
     // end 与服务器交互函数
