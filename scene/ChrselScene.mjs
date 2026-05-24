@@ -359,6 +359,7 @@ class ChrselScene {
             if (this.chr_arr.length > 0) {
                 if (this.chr_arr[0].select) {
                     this.asa_showing1 = this.asa_chrsel_selected[this.chr_arr[0].job][this.chr_arr[0].sex]
+                    this.asa_showing1.currentFrame = 0
                     this.asa_showing1.play()
                 } else {
                     let img = 40
@@ -374,6 +375,7 @@ class ChrselScene {
             if (this.chr_arr.length > 1) {
                 if (this.chr_arr[1].select) {
                     this.asa_showing2 = this.asa_chrsel_selected[this.chr_arr[1].job][this.chr_arr[1].sex]
+                    this.asa_showing2.currentFrame = 0
                     this.asa_showing2.play()
                 } else {
                     let img = 40
@@ -496,6 +498,7 @@ class ChrselScene {
             )
             _this._create_ing = false
             dom_new_window.style.visibility = "hidden"
+            _this._on_chrs_change()
         }
         function refresh_job_sex() {
             if (job == 0) {
@@ -514,6 +517,31 @@ class ChrselScene {
             } else {
                 _this.pixi_parent.removeChild(sp_new_sex0_select)
                 _this.pixi_parent.addChild(sp_new_sex1_select)
+            }
+            if (_this.chr_arr.length > 0) {
+                if (!!_this.asa_showing1) {
+                    _this.asa_showing1.stop()
+                    _this.pixi_parent.removeChild(_this.asa_showing1)
+                    _this.asa_showing1 = null
+                }
+                _this.asa_showing1 = _this.asa_chrsel_selected[job][sex]
+                _this.asa_showing1.currentFrame = 0
+                _this.asa_showing1.play()
+                _this.asa_showing1.x = 430 + (300 - _this.asa_showing1.width) / 2
+                _this.asa_showing1.y = 58 + 360 - _this.asa_showing1.height - 10
+                _this.pixi_parent.addChild(_this.asa_showing1)
+            } else {
+                if (!!_this.asa_showing2) {
+                    _this.asa_showing2.stop()
+                    _this.pixi_parent.removeChild(_this.asa_showing2)
+                    _this.asa_showing2 = null
+                }
+                _this.asa_showing2 = _this.asa_chrsel_selected[job][sex]
+                _this.asa_showing2.currentFrame = 0
+                _this.asa_showing2.play()
+                _this.asa_showing2.x = 90 + (300 - _this.asa_showing2.width) / 2
+                _this.asa_showing2.y = 58 + 360 - _this.asa_showing2.height - 10
+                _this.pixi_parent.addChild(_this.asa_showing2)
             }
         }
         function commit_create() {
