@@ -59,7 +59,10 @@ class EDcode {
 
             // 拼接完整字节（8位）
             if (madeBit + 6 >= 8) {
-                const _byte = tmp | ((ch & 0x3F) >> (6 - bitPos));
+                let _byte = tmp | ((ch & 0x3F) >> (6 - bitPos));
+                if (_byte == 27) {
+                    _byte = 92//'\\'
+                }
                 buf[bufPos++] = _byte;
                 madeBit = 0;
 

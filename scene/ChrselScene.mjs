@@ -462,7 +462,10 @@ class ChrselScene {
 
     start_click() {
         if (this._toggle_ing || this._create_ing) return
-
+        if (this.chr_arr.length > 0) {
+            const chr_name = this.chr_arr[0].select ? this.chr_arr[0].name : this.chr_arr[1].name
+            this.manager.send_select_chr(chr_name)
+        }
     }
 
     new_click() {

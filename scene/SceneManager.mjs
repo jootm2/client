@@ -7,6 +7,7 @@ import { Images } from "../image/Images.mjs"
 import * as PIXI from "../pixi.mjs"
 import { ChgpwdScene } from "./ChgpwdScene.mjs"
 import { ChrselScene } from "./ChrselScene.mjs"
+import { PlayScene } from "./PlayScene.mjs"
 
 class SceneManager {
     constructor(options) {
@@ -26,7 +27,8 @@ class SceneManager {
         this.chg_pwd_scene = new ChgpwdScene(scene_optios, this)
         scene_optios.server_title = options.server_titile
         this.chrsel_scene = new ChrselScene(scene_optios, this)
-        this.scene = 0 // 0:登录 1:新用户 2:修改密码 3:选择角色（含健康公告） 4:游戏
+        this.play_scene = new PlayScene(scene_optios, this)
+        this.scene = 0 // 0:登录 1:新用户 2:修改密码 3:选择角色 4:游戏（含健康公告）
         this.server_base_url = options.server_base_url
         this.ws = null
         this.send_idx = 1
@@ -40,6 +42,9 @@ class SceneManager {
         this.login_id = null
         this.certification = null
         this.runport = 0
+        this.gameport = 0
+        this.chr_name = null
+        this.recv_buf = '' // 进入游戏网关后可能一次接收多个数据包，要做拆包处理
         // begine 对话框相关
         this.need_loading = new Array // 需要加载的图片
         this.frm_dlg_pixi_parent = this.dlg_app.stage
@@ -175,8 +180,66 @@ class SceneManager {
         }
     }
 
-    dlg_notice(text) {
+    dlg_notice(text, callback) {
+        this._close_dlg()
 
+        this.dom_frm_dlg.style.visibility = "visible"
+        // 展示背景图
+        this.sp_frm_dlg_bg = new PIXI.Sprite(new PIXI.Texture(globalThis.BaseTextureCache['prguse/380']))
+        this.sp_frm_dlg_bg.x = (this.view_width - this.sp_frm_dlg_bg.width) / 2
+        this.sp_frm_dlg_bg.y = (this.view_height - this.sp_frm_dlg_bg.height) / 2
+        this.dom_frm_dlg_window.style.left = `${this.sp_frm_dlg_bg.x}px`
+        this.dom_frm_dlg_window.style.top = `${this.sp_frm_dlg_bg.y}px`
+        this.dom_frm_dlg_window.style.width = `${this.sp_frm_dlg_bg.width}px`
+        this.dom_frm_dlg_window.style.height = `${this.sp_frm_dlg_bg.height}px`
+        this.frm_dlg_pixi_parent.addChild(this.sp_frm_dlg_bg)
+        
+        // 按钮的坐标
+        let mb_left = 90
+        let mb_top = 305
+        // 提示文本的坐标
+        const msgx = 23
+        const msgy = 20
+
+        if (text) {
+            this.dom_frm_dlg_label.innerHTML = SDK.transtring(text)
+            this.dom_frm_dlg_label.style.visibility = "visible"
+            this.dom_frm_dlg_label.style.left = `${msgx}px`
+            this.dom_frm_dlg_label.style.top = `${msgy}px`
+        }
+
+        {
+            const img_id = 361
+            this.sp_frm_dlg_ok = new PIXI.Sprite(new PIXI.Texture(globalThis.BaseTextureCache[`prguse/${img_id}`]))
+            const bt_frm_dlg_cancel_down = globalThis.BaseTextureCache[`prguse/${img_id+1}`]
+            this.sp_frm_dlg_ok.x = this.sp_frm_dlg_bg.x + mb_left
+            this.sp_frm_dlg_ok.y = this.sp_frm_dlg_bg.y + mb_top
+            this.dom_frm_dlg_ok.style.left = `${mb_left}px`
+            this.dom_frm_dlg_ok.style.top = `${mb_top}px`
+            this.dom_frm_dlg_ok.style.width = `${bt_frm_dlg_cancel_down.width}px`
+            this.dom_frm_dlg_ok.style.height = `${bt_frm_dlg_cancel_down.height}px`
+            this.frm_dlg_pixi_parent.addChild(this.sp_frm_dlg_ok)
+            this.dom_frm_dlg_ok.style.visibility = "visible"
+            this.dom_frm_dlg_ok.onmousedown = (event) => {
+                if (!!!this.sp_frm_dlg_ok_down) {
+                    this.sp_frm_dlg_ok_down = new PIXI.Sprite(new PIXI.Texture(bt_frm_dlg_cancel_down))
+                    this.sp_frm_dlg_ok_down.x = this.sp_frm_dlg_ok.x
+                    this.sp_frm_dlg_ok_down.y = this.sp_frm_dlg_ok.y
+                }
+                this.frm_dlg_pixi_parent.addChild(this.sp_frm_dlg_ok_down)
+            }
+            this.dom_frm_dlg_ok.onmouseleave = (event) => {
+                this.frm_dlg_pixi_parent.removeChild(this.sp_frm_dlg_ok_down)
+            }
+            this.dom_frm_dlg_ok.onmouseup = (event) => {
+                this.frm_dlg_pixi_parent.removeChild(this.sp_frm_dlg_ok_down)
+                this.sp_frm_dlg_ok_down = null
+                this._close_dlg()
+                if (!!callback) {
+                    callback()
+                }
+            }
+        }
     }
 
     dlg_input(text, callback) {
@@ -207,6 +270,8 @@ class SceneManager {
             this.chg_pwd_scene.update()
         } else if (this.scene == 3) {
             this.chrsel_scene.update()
+        } else if (this.scene == 4) {
+            this.play_scene.update()
         }
     }
 
@@ -219,8 +284,13 @@ class SceneManager {
             this.chg_pwd_scene.leave_scene()
         } else if (this.scene == 3) {
             this.chrsel_scene.leave_scene()
+        } else if (this.scene == 4) {
+            this.play_scene.leave_scene()
+        }
+        if (this.scene > 2 || scene_type > 2) { // 0/1/2场景都是登录网关
             this.ws.close()
             this.ws = null
+            this.recv_buf = ''
         }
 
         this.scene = scene_type
@@ -233,6 +303,8 @@ class SceneManager {
             this.chg_pwd_scene.enter_scene()
         } else if (this.scene == 3) {
             this.chrsel_scene.enter_scene()
+        } else if (this.scene == 4) {
+            this.play_scene.enter_scene()
         }
 
         if (!!!this.ws) {
@@ -257,6 +329,13 @@ class SceneManager {
                     break
                 }
                 case 4: {
+                    this.ws = new WebSocket(this.server_base_url + `/${this.gameport}`)
+                    this.ws.onmessage = (event) => {
+                        this._on_ws_message(event)
+                    }
+                    this.ws.onopen = (event) => {
+                        this.send_run_login()
+                    }
                     break
                 }
                 default:
@@ -265,8 +344,7 @@ class SceneManager {
         }
     }
 
-    _on_ws_message(event) {
-        const data = event.data.slice(1, -1)
+    _deal_pkg(data) {
         const head = this.edcode.decode_message(data)
         const body = data.substring(16)
         switch (head.ident) {
@@ -287,8 +365,6 @@ class SceneManager {
                 break
             }
             case SDK.Messages.SM_SELECTSERVER_OK: {
-                this.ws.close()
-                this.ws = null
                 const str = this.gb2312_decoder.decode(this.edcode.decode_string(body)).split('/')
                 this.certification = str[2]
                 this.runport = str[1]
@@ -309,6 +385,44 @@ class SceneManager {
                 this.chrsel_scene.on_new_chr_response(head)
                 break
             }
+            // 进入游戏成功或失败的消息直接在manager里面处理，这样好记录游戏网关的端口
+            case SDK.Messages.SM_STARTFAIL: {
+                this.dlg_message('您选择的服务器用户满员。')
+                break
+            }
+            case SDK.Messages.SM_STARTPLAY: {
+                const str = this.gb2312_decoder.decode(this.edcode.decode_string(body)).split('/')
+                this.gameport = str[1]
+                setTimeout(() => {
+                    this.change_scene(4)
+                }, 100)
+                break
+            }
+            case SDK.Messages.SM_SENDNOTICE: {
+                const str = this.gb2312_decoder.decode(this.edcode.decode_string(body))
+                this.play_scene.on_notice(str)
+                break
+            }
+        }
+    }
+
+    _on_ws_message(event) {
+        if (this.scene == 4) {
+            this.recv_buf += event.data
+            if (!this.recv_buf.endsWith("!"))
+            {
+                return
+            }
+            const msgs = this.recv_buf.split("#") // 按#分割，得到 ["", "abc!", "123!", "xyz!"] 格式
+                .filter(segment => segment) // 过滤空字符串
+                .map(segment => segment.replace(/!$/, "")) // 去掉末尾的!
+                .filter(segment => true) // 保留空片段（如需过滤空值可改为 segment.trim()）
+            this.recv_buf = ''
+            msgs.forEach(item => {
+                this._deal_pkg(item)
+            })
+        } else {
+            this._deal_pkg(event.data.slice(1, -1))
         }
     }
 
@@ -411,6 +525,24 @@ class SceneManager {
     send_new_chr(name, hair, job, sex) {
         const msg = this.edcode.make_default_msg(SDK.Messages.CM_NEWCHR)
             + this.edcode.encode_string(`${this.login_id}/${name}/${hair}/${job}/${sex}`)
+        this._send_socket(msg)
+    }
+    send_select_chr(name) {
+        this.chr_name = name
+        const msg = this.edcode.make_default_msg(SDK.Messages.CM_SELCHR)
+            + this.edcode.encode_string(`${this.login_id}/${name}`)
+        this._send_socket(msg)
+    }
+    send_run_login() {
+        const msg = this.edcode.encode_string(`**${this.login_id}/${this.chr_name}/${this.certification}/20030422/${(this.certification ^ 0xF2E44FFF) >>> 0}/-1913505763/${(this.certification ^ 0xa4a5b277) >>> 0}/0`)
+        this._send_socket(msg)
+    }
+    send_notice_ok() {
+        const msg = this.edcode.make_default_msg(SDK.Messages.CM_LOGINNOTICEOK)
+        this._send_socket(msg)
+    }
+    send_soft_close() {
+        const msg = this.edcode.make_default_msg(SDK.Messages.CM_SOFTCLOSE)
         this._send_socket(msg)
     }
     // end 与服务器交互函数

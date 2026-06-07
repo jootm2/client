@@ -1306,7 +1306,10 @@ const Messages = Object.freeze({
     CM_QUERYCHR: 100,
     CM_NEWCHR: 101,
     CM_DELCHR: 102,
+    CM_SELCHR: 103,
     CM_SELECTSERVER: 104,
+    CM_SOFTCLOSE: 1009,
+    CM_LOGINNOTICEOK: 1018,
 
     SM_PASSWD_FAIL: 503,
     SM_NEWID_SUCCESS: 504,
@@ -1318,8 +1321,12 @@ const Messages = Object.freeze({
     SM_NEWCHR_FAIL: 522,
     SM_DELCHR_SUCCESS: 523,
     SM_DELCHR_FAIL: 524,
+    SM_STARTPLAY: 525,
+    SM_STARTFAIL: 526,
     SM_PASSOK_SELECTSERVER: 529,
     SM_SELECTSERVER_OK: 530,
+    SM_SENDNOTICE: 658,
+    SM_CHECK_CLIENTVALID: 1106,
 });
 
 // 对话框按钮
@@ -1331,7 +1338,7 @@ const DlgButtons = Object.freeze({
 });
 
 function transtring(text) {
-    return text.replace(/\\/g, "<br>")
+    return text.replace(/\\/g, "<br>").replace(/\t/g, '&emsp;&emsp;').replace(/ /g, '&nbsp;')
 }
 
 const ClientVersion = 20030422 // 2003*10000+4*100+22;2003年4月22日
