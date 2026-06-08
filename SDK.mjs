@@ -1311,6 +1311,7 @@ const Messages = Object.freeze({
     CM_SOFTCLOSE: 1009,
     CM_LOGINNOTICEOK: 1018,
 
+    SM_NEWMAP: 51,
     SM_PASSWD_FAIL: 503,
     SM_NEWID_SUCCESS: 504,
     SM_NEWID_FAIL: 505,

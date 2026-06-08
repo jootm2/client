@@ -403,6 +403,11 @@ class SceneManager {
                 this.play_scene.on_notice(str)
                 break
             }
+            default: { // 其他消息发到游戏场景处理
+                if (this.scene == 4)
+                    this.play_scene.on_server_msg(head, body)
+                break
+            }
         }
     }
 
@@ -426,7 +431,7 @@ class SceneManager {
         }
     }
 
-    _send_socket(msg_str) {
+    send_socket(msg_str) {
         this.ws.send("#" + this.send_idx + msg_str + "!")
         this.send_idx++
 		if (this.send_idx >= 10)
@@ -494,56 +499,56 @@ class SceneManager {
         const msg = this.edcode.make_default_msg(SDK.Messages.CM_ADDNEWUSER) + 
             this.edcode.encode_buffer(ue) + 
             this.edcode.encode_buffer(ua)
-        this._send_socket(msg)
+        this.send_socket(msg)
     }
     send_login(id, psw) {
         this.login_id = id
         const msg = this.edcode.make_default_msg(SDK.Messages.CM_IDPASSWORD, SDK.ClientVersion) +
             this.edcode.encode_string(id + "/" + psw)
-        this._send_socket(msg)
+        this.send_socket(msg)
     }
     send_select_server() {
         const msg = this.edcode.make_default_msg(SDK.Messages.CM_SELECTSERVER) 
             + this.edcode.encode_string(this.server_name)
-        this._send_socket(msg)
+        this.send_socket(msg)
     }
     send_change_pwd(id, cur_psw, new_psw) {
         const msg = this.edcode.make_default_msg(SDK.Messages.CM_CHANGEPASSWORD)
             + this.edcode.encode_string(`${id}\t${cur_psw}\t${new_psw}`)
-        this._send_socket(msg)
+        this.send_socket(msg)
     }
     send_query_chr() {
         const msg = this.edcode.make_default_msg(SDK.Messages.CM_QUERYCHR)
             + this.edcode.encode_string(`${this.login_id}/${this.certification}`)
-        this._send_socket(msg)
+        this.send_socket(msg)
     }
     send_del_chr(name) {
         const msg = this.edcode.make_default_msg(SDK.Messages.CM_DELCHR)
             + this.edcode.encode_string(name)
-        this._send_socket(msg)
+        this.send_socket(msg)
     }
     send_new_chr(name, hair, job, sex) {
         const msg = this.edcode.make_default_msg(SDK.Messages.CM_NEWCHR)
             + this.edcode.encode_string(`${this.login_id}/${name}/${hair}/${job}/${sex}`)
-        this._send_socket(msg)
+        this.send_socket(msg)
     }
     send_select_chr(name) {
         this.chr_name = name
         const msg = this.edcode.make_default_msg(SDK.Messages.CM_SELCHR)
             + this.edcode.encode_string(`${this.login_id}/${name}`)
-        this._send_socket(msg)
+        this.send_socket(msg)
     }
     send_run_login() {
         const msg = this.edcode.encode_string(`**${this.login_id}/${this.chr_name}/${this.certification}/20030422/${(this.certification ^ 0xF2E44FFF) >>> 0}/-1913505763/${(this.certification ^ 0xa4a5b277) >>> 0}/0`)
-        this._send_socket(msg)
+        this.send_socket(msg)
     }
     send_notice_ok() {
         const msg = this.edcode.make_default_msg(SDK.Messages.CM_LOGINNOTICEOK)
-        this._send_socket(msg)
+        this.send_socket(msg)
     }
     send_soft_close() {
         const msg = this.edcode.make_default_msg(SDK.Messages.CM_SOFTCLOSE)
-        this._send_socket(msg)
+        this.send_socket(msg)
     }
     // end 与服务器交互函数
 }

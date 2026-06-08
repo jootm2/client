@@ -2,6 +2,8 @@ import { Images } from "../image/Images.mjs"
 import * as PIXI from "../pixi.mjs"
 import * as SDK from "../SDK.mjs"
 import { MapActor } from "../actor/MapActor.mjs"
+import { GB2312Encoder } from "../GB2312Encoder.mjs"
+import { EDcode } from "../EDcode.mjs"
 
 class PlayScene {
     constructor(options, manager) {
@@ -13,13 +15,31 @@ class PlayScene {
         this.map_actor = new MapActor(options, this.sprite_container) // 地图绘制
         this.first_update = false // 是否初次从其他场景切换过来
         this.key_down_handler = (e) => this._on_key_down(e)
+        this.edcode = new EDcode(10000)
+        this.gb2312_encoder = new GB2312Encoder
+        this.gb2312_decoder = new TextDecoder("gbk")
+        this.utf8_encoder = new TextEncoder
     }
 
     update() {
 
 
         if (this.first_update) {
+            this.map_actor.update()
+        }
+    }
 
+    on_server_msg(head, body) {
+        switch (head.ident) {
+            case SDK.Messages.SM_NEWMAP: {
+                const x = head.wparam
+                const y = head.atag
+                const darkness = head.nseries
+                const mapNo = this.gb2312_decoder.decode(this.edcode.decode_string(body))
+                this.map_actor.enter(mapNo)
+                this.map_actor.setCenter(x, y)
+                break
+            }
         }
     }
 
@@ -54,6 +74,7 @@ class PlayScene {
     // 离开当前场景
     leave_scene() {
         document.removeEventListener('keydown', this.key_down_handler)
+        this.pixi_parent.removeChildren()
     }
 
     on_notice(msg) {
