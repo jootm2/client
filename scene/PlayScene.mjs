@@ -11,7 +11,14 @@ class PlayScene {
         this.manager = manager // 场景管理对象
         this.view_width = options.width // 视区宽度
         this.view_height = options.height // 视区高度
+        this.sprite_container_bg = new PIXI.Graphics
+        {
+            this.sprite_container_bg.beginFill(0xffffff)
+            this.sprite_container_bg.drawRect(-48, -32, this.view_width + 96, this.view_height + 64)
+            this.sprite_container_bg.endFill()
+        }
         this.sprite_container = new PIXI.Container // 精灵容器
+        this.sprite_container.addChild(this.sprite_container_bg)
         this.map_actor = new MapActor(options, this.sprite_container) // 地图绘制
         this.first_update = false // 是否初次从其他场景切换过来
         this.key_down_handler = (e) => this._on_key_down(e)
@@ -40,12 +47,16 @@ class PlayScene {
                 this.map_actor.setCenter(x, y)
                 break
             }
+            case SDK.Messages.SM_LOGON: {
+
+                break
+            }
         }
     }
 
     _on_key_down(e) {
         // Alt + X
-        if (e.altKey && e.key === 'x') {
+        if (e.altKey && (e.key === 'x' || e.code === 'KeyX')) {
             e.preventDefault();
             this.manager.dlg_message('你是否退出 ?', [SDK.DlgButtons.mbOk, SDK.DlgButtons.mbCancel], (mb) => {
                 if (mb == SDK.DlgButtons.mbOk) {
@@ -56,7 +67,7 @@ class PlayScene {
         }
 
         // Alt + Q
-        if (e.altKey && e.key === 'q') {
+        if (e.altKey && (e.key === 'q' || e.code === 'KeyQ')) {
             e.preventDefault();
             this.manager.dlg_message('你真的要退出游戏吗?', [SDK.DlgButtons.mbOk, SDK.DlgButtons.mbCancel], (mb) => {
                 if (mb == SDK.DlgButtons.mbOk)

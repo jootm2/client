@@ -11,6 +11,7 @@ import { PlayScene } from "./PlayScene.mjs"
 
 class SceneManager {
     constructor(options) {
+        delete PIXI.Renderer.__plugins["accessibility"]
         // 绘制地图、人物、怪物、NPC、掉落物品、技能特效等
         this.game_app = new PIXI.Application({ background: '#000', width: options.width
             , height: options.height, view: document.getElementById("game_canvas") })

@@ -140,11 +140,12 @@ class MapActor {
         // 小地砖图层
         this.midContainer = new PIXI.Container
         this.container.addChild(this.midContainer)
-        // 精灵图层（玩家、NPC、怪物、掉落物以及相关特效包括技能等）
-        this.spriteContainer = sprite_container
-        this.container.addChild(this.spriteContainer)
         // 对象图层（树木、房屋）
         this.objContainer = new PIXI.Container
+        // 精灵图层（玩家、NPC、怪物、掉落物以及相关特效包括技能等）
+        this.spriteContainer = sprite_container
+        this.objContainer.mask = this.spriteContainer
+        this.container.addChild(this.spriteContainer)
         this.container.addChild(this.objContainer)
         // 调试层
         this.dbgContainer = new PIXI.Container
