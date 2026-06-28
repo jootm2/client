@@ -136,15 +136,26 @@ class EDcode {
     }
 
     decode_message(msg_str) {
-        const buf = this.decode_string(msg_str.substring(0, 16));
-        const data_view = new DataView(buf.buffer);
+        const buf = this.decode_string(msg_str.substring(0, 16))
+        const data_view = new DataView(buf.buffer)
         return {
             recog: data_view.getInt32(0, true),
             ident: data_view.getInt16(4, true),
             wparam: data_view.getInt16(6, true),
             atag: data_view.getInt16(8, true),
             nseries: data_view.getInt16(10, true),
-        };
+        }
+    }
+
+    decode_body_wl(msg_body) {
+        const buf = this.decode_string(msg_body)
+        const data_view = new DataView(buf.buffer)
+        return {
+            param1: data_view.getInt32(0, true),
+            param2: data_view.getInt32(4, true),
+            tag1: data_view.getInt32(8, true),
+            tag2: data_view.getInt32(12, true),
+        }
     }
 }
 

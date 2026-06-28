@@ -39,6 +39,7 @@ class Images {
                     const pixiTex = PIXI.BaseTexture.fromBuffer(tex.pixels, tex.width, tex.height);
                     if (pixiTex) {
                         globalThis.BaseTextureCache[`${libName}/${no}`] = pixiTex
+                        globalThis.BaseTextureOffsetCache[`${libName}/${no}`] = {offsetX:tex.offsetX, offsetY:tex.offsetY}
                     }
                     if (textureConsumer != null) {
                         textureConsumer(libName, no, tex)

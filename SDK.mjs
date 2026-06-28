@@ -1300,9 +1300,6 @@ function colorCountToBitCount(colorCount) {
 
 // 客户端服务端消息定义
 const Messages = Object.freeze({
-    CM_IDPASSWORD: 2001,
-    CM_ADDNEWUSER: 2002,
-    CM_CHANGEPASSWORD: 2003,
     CM_QUERYCHR: 100,
     CM_NEWCHR: 101,
     CM_DELCHR: 102,
@@ -1310,7 +1307,11 @@ const Messages = Object.freeze({
     CM_SELECTSERVER: 104,
     CM_SOFTCLOSE: 1009,
     CM_LOGINNOTICEOK: 1018,
+    CM_IDPASSWORD: 2001,
+    CM_ADDNEWUSER: 2002,
+    CM_CHANGEPASSWORD: 2003,
 
+    SM_LOGON: 50,
     SM_NEWMAP: 51,
     SM_PASSWD_FAIL: 503,
     SM_NEWID_SUCCESS: 504,
@@ -1327,7 +1328,7 @@ const Messages = Object.freeze({
     SM_PASSOK_SELECTSERVER: 529,
     SM_SELECTSERVER_OK: 530,
     SM_SENDNOTICE: 658,
-    SM_CHECK_CLIENTVALID: 1106,
+    //SM_CHECK_CLIENTVALID: 1106,
 });
 
 // 对话框按钮
@@ -1356,6 +1357,57 @@ function Hiword(n) {
   return ((n | 0) >> 16) & 0xFFFF;
 }
 
+function Lowbyte(n) {
+    return (n | 0) & 0xFF;
+}
+
+function Hibyte(n) {
+  return ((n | 0) >> 8) & 0xFF;
+}
+
+function RACEfeature(feature) {
+    return Lowbyte (Loword (feature))
+}
+
+function WEAPONfeature (feature) {
+    return Hibyte (Loword (feature))
+}
+
+function HAIRfeature (feature) {
+    return Lowbyte (Hiword (feature))
+}
+
+function DRESSfeature (feature) {
+    return Hibyte (Hiword (feature))
+}
+
+function APPRfeature (feature) {
+    return Hiword (feature)
+}
+
+function MakeWord(lo, hi) {
+    // 截断为单字节防止溢出
+    const bLo = lo & 0xFF;
+    const bHi = hi & 0xFF;
+    return (bHi << 8) | bLo;
+}
+
+function MakeLong (loWord, hiWord) {
+    const wLo = loWord & 0xFFFF;
+    const wHi = hiWord & 0xFFFF;
+    // 转32位有符号整数模拟Delphi Longint
+    const val = (wHi << 16) | wLo;
+    return val | 0;
+}
+
+function MakeFeature (race, dress, weapon, face) {
+    return MakeLong (MakeWord (race, weapon), MakeWord (face, dress))
+}
+
+function MakeFeatureAp (race, state, appear) {
+    return MakeLong (MakeWord (race, state), appear)
+}
+
 function GetJobName(job) {
     switch (job) {
         case 0: return "武士"
@@ -1364,6 +1416,56 @@ function GetJobName(job) {
     }
 }
 
+function CalcMapDrawRect(rectPixel, rectGame, view_width, view_height, map_width, map_height, cx, cy) {
+    // 计算显示区域（显示区域以游戏坐标为准）
+    // 1.显示区域转换为像素尺寸应大于等于游戏画布
+    // 2.如果玩家（主要角色）在移动，则需要朝反方向多绘制，不然有黑边
+    // 3.下方应多延申一些显示区域，不然显示不完整
+    //  这是由于因为传奇地图对象层图片的切片方式导致的
+    //  我们可以浏览object*图片库，会发现图片大多是固定宽度（48），长度不定
+    //  结合.map描述来看，会发现图片的anchor（锚点）是下方
+    //  因此如果下方不多绘制，就会出现一些奇异现象，比如树木的中间是空的，往下走才会显示出来
+    // rectPixel 绘制区域（像素）
+    // rectGame绘制区域（地图坐标）
+    // 画布横向可容纳的一半地图块数量（为了视觉效果更好，先减去一个用于绝对居中的块）
+    const maxHalfCellH =  Math.ceil((view_width - 48) / 2 / 48)
+    // 画布纵向可容纳的一半地图块数量（为了视觉效果更好，先减去一个用于绝对居中的块）
+    const maxHalfCellV = Math.ceil((view_height - 32) / 2 / 32)
+    
+    // 从画布中间往左最多能延申的块数量（-4是冗余缓存量）
+    let leftMinCell = cx - maxHalfCellH - 4
+    for(;leftMinCell < 1;++leftMinCell); // 避免溢出，最小为1
+    // 从画布中间往上最多能延申的块数量（-4是冗余缓存量）
+    let topMinCell = cy - maxHalfCellV - 4
+    for(;topMinCell < 1;++topMinCell);
+    // 从画布中间往右最多能延申的块数量（-4是冗余缓存量）
+    let rightMaxCell = cx + maxHalfCellH + 4
+    for(;rightMaxCell > map_width;--rightMaxCell);
+    // 从画布中间往下最多能延申的块数量（-20是冗余缓存量）
+    let bottomMaxCell = cy + maxHalfCellV + 20
+    for(;bottomMaxCell > map_height;--bottomMaxCell);
+    
+    rectGame.x = leftMinCell
+    rectGame.y = topMinCell
+    rectGame.width = rightMaxCell - leftMinCell + 1
+    rectGame.height = bottomMaxCell - topMinCell + 1
+    
+    rectPixel.x = (view_width - 48) / 2 - (cx - leftMinCell) * 48
+    rectPixel.y = (view_height - 32) / 2 - (cy - topMinCell) * 32
+    rectPixel.width = (rightMaxCell - leftMinCell + 1) * 48
+    rectPixel.height = (bottomMaxCell - topMinCell + 1) * 32
+}
+
+// 人物当前动作
+const HumActions = Object.freeze({
+    Stand: 1,
+    Walk: 2,
+    Run: 3,
+});
+
 export { Palletes, widthBytes, skipBytes, colorCountToBitCount
     , Messages, DlgButtons, transtring, ClientVersion
-    , Loword, Hiword, GetJobName };
+    , Loword, Hiword, Lowbyte, Hibyte
+    , RACEfeature, WEAPONfeature, HAIRfeature, DRESSfeature, APPRfeature
+    , MakeWord, MakeLong , MakeFeature, MakeFeatureAp
+    , CalcMapDrawRect, GetJobName , HumActions };

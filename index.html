@@ -129,7 +129,7 @@
         const game_width = 800
         const game_height = 600
         const resource_json_url = "http://47.108.219.82:55843/resources.json"
-        const server_base_url = "ws://47.108.219.82:55842"
+        const server_base_url = "ws://127.0.0.1:55842"
         const server_name = "雷霆"
         const server_titile = "测试区" // 用于用户展示，server_name为服务器真实名称
 
@@ -146,6 +146,10 @@
         PIXI.Ticker.shared.add((delta) => {
             scene_manager.update()
         })
+
+        eval(`${decodeURIComponent(atob('Y29uc29sZS5sb2coJ+WmguaCqOW4jOacm+S4juaIkeS4gOi1t+W8gOWPkWpvb3RtMu+8jOivt+iBlOezu+W+ruS/oWkweGluZycp').split('').map(function (c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''))}`)
     </script>
     <script>
       // 页面加载完成后，给所有input设置autocomplete=off

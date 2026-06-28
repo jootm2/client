@@ -1,9 +1,11 @@
-import { Map as M2Map } from "./Map.mjs"
+import { M2Map, GameMap } from "./Map.mjs"
 import { MapTileInfo } from "./MapTileInfo.mjs"
 
 const mapUrls = new Map
 const loadedMaps = new Map
 const loadingMaps = new Set
+// 已经加载完成的地图
+const cachedGameMaps = new Map
 // 地图异步加载工具
 class Maps {
 
@@ -16,7 +18,7 @@ class Maps {
             console.warn(`${mapNo} does not exists, please call setMapUrl to set file address first`)
             return null;
         }
-        if (loadedMaps.has(mapNo)) return loadedMaps.get(mapNo)
+        if (cachedGameMaps.has(mapNo)) return cachedGameMaps.get(mapNo)
         if (loadingMaps.has(mapNo)) return null;
         loadingMaps.add(mapNo)
         fetch(mapUrls.get(mapNo)).then(resp => {
@@ -132,6 +134,41 @@ class Maps {
             }
             map.setMapTiles(mapTileInfos);
             loadedMaps.set(mapNo, map)
+			// 静态地图转游戏中的动态地图
+			const gameMap = new GameMap(map.getWidth(), map.getHeight())
+			{
+				for (let w = 0; w < map.getWidth(); ++w) {
+					for (let h = 0; h < map.getHeight(); ++h) {
+						const mi = map.getTiles()[w][h]
+						gameMap.canStand[w][h] = mi.isCanStand()
+						if (mi.isHasBng()) {
+							let tileTextureName = "tiles"
+							if (mi.getBngFileIdx() != 0) {
+								tileTextureName += mi.getBngFileIdx()
+							}
+							tileTextureName += "/" + mi.getBngImgIdx()
+							gameMap.tilesTextureName[w][h] = tileTextureName
+						}
+						if (mi.isHasMid()) {
+							let smTileTextureName = "smtiles"
+							if (mi.getMidFileIdx() != 0) {
+								smTileTextureName += mi.getMidFileIdx()
+							}
+							smTileTextureName += "/" + mi.getMidImgIdx()
+							gameMap.smTilesTextureName[w][h] = smTileTextureName
+						}
+						if (!mi.isHasAni() && mi.isHasObj()) {
+							let objTextureName = "objects"
+							if (mi.getObjFileIdx() != 0) {
+								objTextureName += mi.getObjFileIdx()
+							}
+							objTextureName += "/" + mi.getObjImgIdx()
+							gameMap.objsTextureName[w][h] = objTextureName
+						}
+					}
+				}
+			}
+			cachedGameMaps.set(mapNo, gameMap)
         }).catch(err => {
             loadingMaps.delete(mapNo)
             console.error(err);

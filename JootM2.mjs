@@ -3,6 +3,7 @@ import { Maps } from "./map/Maps.mjs"
 
 async function init(resourcesJsonUrl) {
     globalThis.BaseTextureCache = new Array
+    globalThis.BaseTextureOffsetCache = new Array
     try {
         const resp = await fetch(resourcesJsonUrl);
         const baseUrl = resourcesJsonUrl.substring(0, resourcesJsonUrl.lastIndexOf("/") + 1)
